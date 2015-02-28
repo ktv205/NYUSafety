@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ClickForHelp</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="string_button_signup">signup</string>
+    <string name="string_text_login">login</string>
+    <string name="string_text_member">Already a member?</string>
+    <string name="string_text_name">Name</string>
+    <string name="string_text_email">Email</string>
+    <string name="string_text_atnyu">nyu email</string>
+    <string name="string_text_password">password</string>
+    <string name="string_text_repassword">re-enter</string>
+    <string name="string_text_phone">phone</string>
+
+</resources>
