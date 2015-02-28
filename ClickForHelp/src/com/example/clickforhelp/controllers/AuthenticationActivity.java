@@ -1,8 +1,6 @@
 package com.example.clickforhelp.controllers;
 
 import com.example.clickforhelp.R;
-import com.example.clickforhelp.R.id;
-import com.example.clickforhelp.R.layout;
 import com.example.clickforhelp.controllers.WelcomeFragment.OnClickAuthentication;
 import com.example.clickforhelp.models.AppPreferences;
 
