@@ -9,6 +9,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 public class AuthenticationActivity extends Activity implements
 		OnClickAuthentication {
@@ -27,29 +28,40 @@ public class AuthenticationActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
 		Log.d(TAG, "in oncreate");
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.d(TAG, "inOnResume");
 		loginFragment = new LoginFragment();
 		welcomeFragment = new WelcomeFragment();
 		signupFragment = new SignupFragment();
 		fragmentManger = getFragmentManager();
 		fragmentTransaction = fragmentManger.beginTransaction();
-		fragmentTransaction.add(R.id.authentication_parent0_linear,
+		fragmentTransaction.replace(R.id.authentication_parent0_linear,
 				welcomeFragment, WELCOMETAG);
 		fragmentTransaction.commit();
 	}
 
 	@Override
 	public void onClickAuthButton(int flag) {
-		fragmentTransaction = fragmentManger.beginTransaction();
-		if (flag == AppPreferences.Flags.LOGIN_FLAG) {
+		if (CommonFunctions.isConnected(getApplicationContext())) {
+			fragmentTransaction = fragmentManger.beginTransaction();
+			if (flag == AppPreferences.Flags.LOGIN_FLAG) {
 
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
-					loginFragment, LOGINTAG);
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						loginFragment, LOGINTAG);
+			} else {
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						signupFragment, SIGNUPTAG);
+			}
+			fragmentTransaction.addToBackStack(null);
+			fragmentTransaction.commit();
 		} else {
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
-					signupFragment, SIGNUPTAG);
+			Toast.makeText(this, "no network connection", Toast.LENGTH_SHORT)
+					.show();
 		}
-		fragmentTransaction.addToBackStack(null);
-		fragmentTransaction.commit();
 
 	}
 }

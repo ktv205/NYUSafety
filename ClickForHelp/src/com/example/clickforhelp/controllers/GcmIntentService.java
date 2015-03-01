@@ -3,26 +3,30 @@ package com.example.clickforhelp.controllers;
 import com.example.clickforhelp.R;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-public class GcmService extends Service {
-	private static final String TAG = "GcmService";
+public class GcmIntentService extends IntentService {
+	private static final String TAG = "GcmIntentService";
 	public static final int NOTIFICATION_ID = 1;
 	private NotificationManager mNotificationManager;
 	NotificationCompat.Builder builder;
 
+	public GcmIntentService() {
+		super(TAG);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(TAG, "in onStart");
+	protected void onHandleIntent(Intent intent) {
+
 		Bundle extras = intent.getExtras();
 		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
 		// The getMessageType() intent parameter must be the intent you received
@@ -64,12 +68,6 @@ public class GcmService extends Service {
 		}
 		// Release the wake lock provided by the WakefulBroadcastReceiver.
 		GcmBroadcastReceiver.completeWakefulIntent(intent);
-		 stopSelf();
-		return START_NOT_STICKY;
-	}
-
-	@Override
-	public void onStart(Intent intent, int startId) {
 
 	}
 
@@ -91,11 +89,6 @@ public class GcmService extends Service {
 
 		mBuilder.setContentIntent(contentIntent);
 		mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
-	}
-
-	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
 	}
 
 }

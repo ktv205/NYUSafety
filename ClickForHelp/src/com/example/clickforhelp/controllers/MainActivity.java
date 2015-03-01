@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.example.clickforhelp.R;
-import com.example.clickforhelp.R.drawable;
-import com.example.clickforhelp.R.id;
-import com.example.clickforhelp.R.layout;
-import com.example.clickforhelp.R.menu;
+import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -375,6 +372,15 @@ public class MainActivity extends FragmentActivity implements
 
 		}
 
+	}
+	public class sendGCMInfoAsyncTask extends AsyncTask<RequestParams, Void, String>{
+
+		@Override
+		protected String doInBackground(RequestParams... params) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
 	}
 
 }

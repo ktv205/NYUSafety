@@ -13,5 +13,8 @@
     <string name="string_text_password">password</string>
     <string name="string_text_repassword">re-enter</string>
     <string name="string_text_phone">phone</string>
+    <string name="string_text_code">verification code</string>
+    <string name="string_text_resend">resend?</string>
+    <string name="string_text_submit">submit</string>
 
 </resources>
