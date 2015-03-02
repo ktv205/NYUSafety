@@ -27,6 +27,7 @@ public class SignupFragment extends Fragment {
 	private final static int RETYPE_EMPTY = 3;
 	private final static int DONT_MATCH = 4;
 	private final static int RESULT_OK = 5;
+	private final static int INVALID_EMAIL = 6;
 	private String name, email, password, reType;
 	private UserModel user;
 
@@ -60,6 +61,8 @@ public class SignupFragment extends Fragment {
 						message = "retype cant be empty";
 					} else if (flag == DONT_MATCH) {
 						message = "password do not match";
+					} else if (flag == INVALID_EMAIL) {
+						message = "enter valid nyu email";
 					} else {
 						message = "everything looks good";
 						createUserModel();
@@ -82,7 +85,7 @@ public class SignupFragment extends Fragment {
 		user.setEmail(email);
 		user.setPassword(password);
 	}
-	
+
 	public RequestParams setParams() {
 		RequestParams params = new RequestParams();
 		params.setURI("");
@@ -117,38 +120,54 @@ public class SignupFragment extends Fragment {
 			return RETYPE_EMPTY;
 		} else if (!password.equals(reType)) {
 			return DONT_MATCH;
+		} else if (!validNyuEmail(email)) {
+			return INVALID_EMAIL;
 		} else {
-			user=new UserModel();
+			user = new UserModel();
 			user.setName(name);
 			user.setEmail(email);
 			user.setPassword(password);
 			return RESULT_OK;
-			
-			
+
 		}
-	} 
-	public class SendSignupDetailsAsyncTask extends AsyncTask<RequestParams, Void, String>{
+	}
+
+	public boolean validNyuEmail(String email) {
+		String[] split = email.split("@");
+		if (split[1].equals("nyu.edu")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public class SendSignupDetailsAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
 			// TODO Auto-generated method stub
-			//return new HttpManager().sendUserData(params[0]);
+			// return new HttpManager().sendUserData(params[0]);
 			return null;
 		}
+
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			jsonString(result);
-			Intent intent=new Intent(getActivity(),EmailVerificationActivity.class);
-			intent.putExtra(AppPreferences.IntentExtras.signuptoverification, user);
+			Intent intent = new Intent(getActivity(),
+					EmailVerificationActivity.class);
+			intent.putExtra(AppPreferences.IntentExtras.signuptoverification,
+					user);
 			getActivity().startActivity(intent);
 			getActivity().finish();
-			
+
 		}
-		public void jsonString(String result){
-			
-		} 
-		
-	} 
+
+		public void jsonString(String result) {
+
+		}
+
+	}
 
 }

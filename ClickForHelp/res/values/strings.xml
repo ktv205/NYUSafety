@@ -16,5 +16,7 @@
     <string name="string_text_code">verification code</string>
     <string name="string_text_resend">resend?</string>
     <string name="string_text_submit">submit</string>
+    <string name="string_app_name">NYU SAFETY</string>
+    <string name="string_nyu_signup">signup with nyu email</string>
 
 </resources>

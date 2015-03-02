@@ -121,4 +121,14 @@ public class EmailVerificationActivity extends Activity {
 
 	}
 
+	@Override
+	public void onBackPressed() {
+		Intent intent = new Intent(this, AuthenticationActivity.class);
+		intent.putExtra(
+				AppPreferences.IntentExtras.verificationtoauthentication,
+				AppPreferences.Flags.BACK_FLAG);
+		startActivity(intent);
+		finish();
+	}
+
 }

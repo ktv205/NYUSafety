@@ -5,8 +5,10 @@ import com.example.clickforhelp.controllers.WelcomeFragment.OnClickAuthenticatio
 import com.example.clickforhelp.models.AppPreferences;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -28,6 +30,7 @@ public class AuthenticationActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
 		Log.d(TAG, "in oncreate");
+
 	}
 
 	@Override
@@ -39,8 +42,24 @@ public class AuthenticationActivity extends Activity implements
 		signupFragment = new SignupFragment();
 		fragmentManger = getFragmentManager();
 		fragmentTransaction = fragmentManger.beginTransaction();
-		fragmentTransaction.replace(R.id.authentication_parent0_linear,
-				welcomeFragment, WELCOMETAG);
+		Intent intent = getIntent();
+		if (intent != null) {
+			if (intent
+					.hasExtra(AppPreferences.IntentExtras.verificationtoauthentication)) {
+				int flag = intent
+						.getExtras()
+						.getInt(AppPreferences.IntentExtras.verificationtoauthentication);
+				if (flag == AppPreferences.Flags.BACK_FLAG) {
+					fragmentTransaction.replace(
+							R.id.authentication_parent0_linear, signupFragment,
+							SIGNUPTAG);
+				}
+			} else {
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						welcomeFragment, WELCOMETAG);
+			}
+		}
+
 		fragmentTransaction.commit();
 	}
 
@@ -61,6 +80,20 @@ public class AuthenticationActivity extends Activity implements
 		} else {
 			Toast.makeText(this, "no network connection", Toast.LENGTH_SHORT)
 					.show();
+		}
+
+	}
+
+	@Override
+	public void onBackPressed() {
+		Fragment fragment = getFragmentManager().findFragmentByTag(SIGNUPTAG);
+		if (fragment != null) {
+			fragmentTransaction = getFragmentManager().beginTransaction();
+			fragmentTransaction.replace(R.id.authentication_parent0_linear,
+					welcomeFragment, WELCOMETAG);
+			fragmentTransaction.commit();
+		} else {
+			super.onBackPressed();
 		}
 
 	}

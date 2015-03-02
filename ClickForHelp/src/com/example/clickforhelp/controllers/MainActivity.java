@@ -3,6 +3,9 @@ package com.example.clickforhelp.controllers;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
@@ -20,8 +23,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -50,6 +55,9 @@ public class MainActivity extends FragmentActivity implements
 	public static final String EXTRA_MESSAGE = "message";
 	public static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
+	private IntentFilter intentFilter;
+	private BroadcastReceiver mReceiver;
+
 	/**
 	 * Substitute you own sender ID here. This is the project number you got
 	 * from the API Console, as described in "Getting Started."
@@ -76,7 +84,9 @@ public class MainActivity extends FragmentActivity implements
 			// startService(serviceIntent);
 			buildANotification();
 			gcmServiceImplementation();
-
+			intentFilter = new IntentFilter(
+					"com.google.android.c2dm.intent.RECEIVE");
+			intentFilter.addCategory("com.example.clickforhelp");
 		}
 	}
 
@@ -206,6 +216,24 @@ public class MainActivity extends FragmentActivity implements
 	protected void onResume() {
 		super.onResume();
 		mapFragment.getMapAsync(this);
+		mReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Log.d(TAG, "received");
+				String message = intent.getExtras().getString("default");
+				Log.d(TAG, "message->" + message);
+				JSONObject obj = null;
+				try {
+					obj = new JSONObject(message);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+			}
+		};
+
+		this.registerReceiver(mReceiver, intentFilter);
+
 	}
 
 	@Override
@@ -222,6 +250,8 @@ public class MainActivity extends FragmentActivity implements
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -373,14 +403,39 @@ public class MainActivity extends FragmentActivity implements
 		}
 
 	}
-	public class sendGCMInfoAsyncTask extends AsyncTask<RequestParams, Void, String>{
+
+	public class SendGCMInfoAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
 			// TODO Auto-generated method stub
 			return null;
 		}
-		
+
+		@Override
+		protected void onPostExecute(String result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
+		}
+
+	}
+
+	public class GetLocationsAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
+
+		@Override
+		protected String doInBackground(RequestParams... params) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
+		}
+
 	}
 
 }
