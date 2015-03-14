@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -18,11 +19,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,13 +34,10 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
@@ -58,16 +55,11 @@ public class MainActivity extends FragmentActivity implements
 	private IntentFilter intentFilter;
 	private BroadcastReceiver mReceiver;
 
-	/**
-	 * Substitute you own sender ID here. This is the project number you got
-	 * from the API Console, as described in "Getting Started."
-	 */
 	String SENDER_ID = "947264921784";
 	TextView mDisplay;
 	GoogleCloudMessaging gcm;
 	AtomicInteger msgId = new AtomicInteger();
 	SharedPreferences prefs;
-
 	String regid;
 
 	@Override
@@ -82,134 +74,11 @@ public class MainActivity extends FragmentActivity implements
 			// Intent serviceIntent = new Intent(this,
 			// LocationUpdateService.class);
 			// startService(serviceIntent);
-			buildANotification();
 			gcmServiceImplementation();
 			intentFilter = new IntentFilter(
 					"com.google.android.c2dm.intent.RECEIVE");
 			intentFilter.addCategory("com.example.clickforhelp");
 		}
-	}
-
-	public void gcmServiceImplementation() {
-		context = getApplicationContext();
-		Log.d(TAG, "in gcmImp");
-		if (checkPlayServices()) {
-			Log.d(TAG, "playServices available in gcmImp");
-			gcm = GoogleCloudMessaging.getInstance(this);
-			regid = getRegistrationId(context);
-			Log.d(TAG, "regId" + regid);
-			if (regid.isEmpty()) {
-				registerInBackground();
-			}
-
-		} else {
-			Log.d(TAG, "playServices not available in onCreate");
-		}
-	}
-
-	/**
-	 * Gets the current registration ID for application on GCM service.
-	 * <p>
-	 * If result is empty, the app needs to register.
-	 *
-	 * @return registration ID, or empty string if there is no existing
-	 *         registration ID.
-	 */
-	private String getRegistrationId(Context context) {
-		final SharedPreferences prefs = getGCMPreferences(context);
-		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-		if (registrationId.isEmpty()) {
-			Log.i(TAG, "Registration not found.");
-			return "";
-		}
-		// Check if app was updated; if so, it must clear the registration ID
-		// since the existing registration ID is not guaranteed to work with
-		// the new app version.
-		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION,
-				Integer.MIN_VALUE);
-		int currentVersion = getAppVersion(context);
-		if (registeredVersion != currentVersion) {
-			Log.i(TAG, "App version changed.");
-			return "";
-		}
-		return registrationId;
-	}
-
-	/**
-	 * @return Application's {@code SharedPreferences}.
-	 */
-	private SharedPreferences getGCMPreferences(Context context) {
-		// This sample app persists the registration ID in shared preferences,
-		// but
-		// how you store the registration ID in your app is up to you.
-		return getSharedPreferences(MainActivity.class.getSimpleName(),
-				Context.MODE_PRIVATE);
-	}
-
-	/**
-	 * @return Application's version code from the {@code PackageManager}.
-	 */
-	private static int getAppVersion(Context context) {
-		try {
-			PackageInfo packageInfo = context.getPackageManager()
-					.getPackageInfo(context.getPackageName(), 0);
-			return packageInfo.versionCode;
-		} catch (NameNotFoundException e) {
-			// should never happen
-			throw new RuntimeException("Could not get package name: " + e);
-		}
-	}
-
-	public boolean checkPlayServices() {
-		Log.d(TAG, "in checkPlayServices");
-		int resultCode = GooglePlayServicesUtil
-				.isGooglePlayServicesAvailable(this);
-		if (resultCode != ConnectionResult.SUCCESS) {
-			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-				GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-						PLAY_SERVICES_RESOLUTION_REQUEST).show();
-			} else {
-				Log.i(TAG, "This device is not supported.");
-				finish();
-			}
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	public void buildANotification() {
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				this).setSmallIcon(R.drawable.ic_launcher)
-				.setContentTitle("Help Required")
-				.setContentText("Some one nearby is in trouble");
-		Intent resultIntent = new Intent(this, MainActivity.class);
-		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		// Adds the back stack for the Intent (but not the Intent itself)
-		stackBuilder.addParentStack(MainActivity.class);
-		stackBuilder.addNextIntent(resultIntent);
-		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
-				PendingIntent.FLAG_UPDATE_CURRENT);
-		mBuilder.setContentIntent(resultPendingIntent);
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		// mId allows you to update the notification later on.
-		mNotificationManager.notify(10, mBuilder.build());
-	}
-
-	protected synchronized void buildGoogleApiClient() {
-		Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
-		mGoogleApiClient = new GoogleApiClient.Builder(this)
-				.addConnectionCallbacks(this)
-				.addOnConnectionFailedListener(this)
-				.addApi(LocationServices.API).build();
-		mGoogleApiClient.connect();
-	}
-
-	private void initializeMapFields() {
-		Toast.makeText(this, "intializeMapFields", Toast.LENGTH_SHORT).show();
-		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
-				R.id.map);
-		mapFragment.getMapAsync(this);
 	}
 
 	@Override
@@ -235,19 +104,20 @@ public class MainActivity extends FragmentActivity implements
 		this.registerReceiver(mReceiver, intentFilter);
 
 	}
+	@Override
+	protected void onPause() {
+		super.onPause();
+		this.unregisterReceiver(mReceiver);
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
 			Intent intent = new Intent(this, SettingsActivity.class);
@@ -257,57 +127,56 @@ public class MainActivity extends FragmentActivity implements
 		return super.onOptionsItemSelected(item);
 	}
 
-	@Override
-	public void onMapReady(GoogleMap arg0) {
-		Toast.makeText(this, "onMapReady", Toast.LENGTH_SHORT).show();
-		mMap = arg0;
-		mMap.setMyLocationEnabled(true);
-		if (mLastLocation != null && mMap != null) {
-			Toast.makeText(this, "mLastLocation is not null",
-					Toast.LENGTH_SHORT).show();
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
-					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-					14));
-			new GetLocationOfPeers().execute();
+	// GCM STUFF
+	public void gcmServiceImplementation() {
+		context = getApplicationContext();
+		Log.d(TAG, "in gcmImp");
+		if (checkPlayServices()) {
+			Log.d(TAG, "playServices available in gcmImp");
+			gcm = GoogleCloudMessaging.getInstance(this);
+			regid = getRegistrationId(context);
+			Log.d(TAG, "regId" + regid);
+			if (regid.isEmpty()) {
+				registerInBackground();
+			}
 
 		} else {
-			Toast.makeText(this, "mLastLocation is null", Toast.LENGTH_SHORT)
-					.show();
+			Log.d(TAG, "playServices not available in onCreate");
 		}
 	}
 
-	@Override
-	public void onConnectionFailed(ConnectionResult arg0) {
-		Toast.makeText(this, "connection failed", Toast.LENGTH_SHORT).show();
-
-	}
-
-	@Override
-	public void onConnected(Bundle arg0) {
-		Toast.makeText(this, "in onconnected of location services",
-				Toast.LENGTH_SHORT).show();
-		mLastLocation = LocationServices.FusedLocationApi
-				.getLastLocation(mGoogleApiClient);
-		if (mLastLocation != null && mMap != null) {
-			Toast.makeText(this, "mLastLocation is not null",
-					Toast.LENGTH_SHORT).show();
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
-					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-					16));
-			new GetLocationOfPeers().execute();
-
-		} else {
-			Toast.makeText(this, "mLastLocation is null", Toast.LENGTH_SHORT)
-					.show();
+	private String getRegistrationId(Context context) {
+		final SharedPreferences prefs = getGCMPreferences(context);
+		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
+		if (registrationId.isEmpty()) {
+			Log.i(TAG, "Registration not found.");
+			return "";
 		}
 
+		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION,
+				Integer.MIN_VALUE);
+		int currentVersion = getAppVersion(context);
+		if (registeredVersion != currentVersion) {
+			Log.i(TAG, "App version changed.");
+			return "";
+		}
+		return registrationId;
 	}
 
-	@Override
-	public void onConnectionSuspended(int arg0) {
-		Toast.makeText(this, "in onConnectionSuspended", Toast.LENGTH_SHORT)
-				.show();
+	private SharedPreferences getGCMPreferences(Context context) {
 
+		return getSharedPreferences(MainActivity.class.getSimpleName(),
+				Context.MODE_PRIVATE);
+	}
+
+	private static int getAppVersion(Context context) {
+		try {
+			PackageInfo packageInfo = context.getPackageManager()
+					.getPackageInfo(context.getPackageName(), 0);
+			return packageInfo.versionCode;
+		} catch (NameNotFoundException e) {
+			throw new RuntimeException("Could not get package name: " + e);
+		}
 	}
 
 	public void registerInBackground() {
@@ -321,29 +190,10 @@ public class MainActivity extends FragmentActivity implements
 					}
 					regid = gcm.register(SENDER_ID);
 					msg = "Device registered, registration ID=" + regid;
-
-					// You should send the registration ID to your server over
-					// HTTP,
-					// so it can use GCM/HTTP or CCS to send messages to your
-					// app.
-					// The request to your server should be authenticated if
-					// your app
-					// is using accounts.
-					sendRegistrationIdToBackend();
-
-					// For this demo: we don't need to send it because the
-					// device
-					// will send upstream messages to a server that echo back
-					// the
-					// message using the 'from' address in the message.
-
-					// Persist the registration ID - no need to register again.
+					sendRegistrationIdToBackend(regid);
 					storeRegistrationId(context, regid);
 				} catch (IOException ex) {
 					msg = "Error :" + ex.getMessage();
-					// If there is an error, don't just keep trying to register.
-					// Require the user to click a button again, or perform
-					// exponential back-off.
 				}
 				return msg;
 			}
@@ -351,19 +201,15 @@ public class MainActivity extends FragmentActivity implements
 		}.execute();
 	}
 
-	private void sendRegistrationIdToBackend() {
-		// Your implementation here.
+	private void sendRegistrationIdToBackend(String regid) {
+		String[] values = { "public", "index.php", "updategcm", "useremail",
+				regid };
+		RequestParams params = CommonFunctions.setParams(
+				AppPreferences.ServerVariables.SCHEME,
+				AppPreferences.ServerVariables.AUTHORITY, values);
+		new SendGCMInfoAsyncTask().execute(params);
 	}
 
-	/**
-	 * Stores the registration ID and app versionCode in the application's
-	 * {@code SharedPreferences}.
-	 *
-	 * @param context
-	 *            application's context.
-	 * @param regId
-	 *            registration ID
-	 */
 	private void storeRegistrationId(Context context, String regId) {
 		final SharedPreferences prefs = getGCMPreferences(context);
 		int appVersion = getAppVersion(context);
@@ -374,31 +220,130 @@ public class MainActivity extends FragmentActivity implements
 		editor.commit();
 	}
 
-	public class GetLocationOfPeers extends AsyncTask<Void, Void, Void> {
+	public boolean checkPlayServices() {
+		Log.d(TAG, "in checkPlayServices");
+		int resultCode = GooglePlayServicesUtil
+				.isGooglePlayServicesAvailable(this);
+		if (resultCode != ConnectionResult.SUCCESS) {
+			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+				GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+						PLAY_SERVICES_RESOLUTION_REQUEST).show();
+			} else {
+				Log.i(TAG, "This device is not supported.");
+				finish();
+			}
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	protected synchronized void buildGoogleApiClient() {
+		mGoogleApiClient = new GoogleApiClient.Builder(this)
+				.addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this)
+				.addApi(LocationServices.API).build();
+		mGoogleApiClient.connect();
+	}
+
+	// MAP stuff
+	private void initializeMapFields() {
+		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
+				R.id.map);
+		mapFragment.getMapAsync(this);
+	}
+
+	@Override
+	public void onMapReady(GoogleMap arg0) {
+		mMap = arg0;
+		mMap.setMyLocationEnabled(true);
+		if (mLastLocation != null && mMap != null) {
+			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
+					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+					14));
+		} else {
+
+		}
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		mLastLocation = LocationServices.FusedLocationApi
+				.getLastLocation(mGoogleApiClient);
+		if (mLastLocation != null && mMap != null) {
+			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
+					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+					16));
+			String[] locationValues = { "public", "index.php",
+					"updatelocation", "userid",
+					String.valueOf(mLastLocation.getLatitude()),
+					String.valueOf(mLastLocation.getLongitude()) };
+			RequestParams locationParams = CommonFunctions.setParams(
+					AppPreferences.ServerVariables.SCHEME,
+					AppPreferences.ServerVariables.AUTHORITY, locationValues);
+			new SendLocationsAsyncTask().execute(locationParams);
+
+		} else {
+		}
+		String[] values = { "public", "index.php", "home", "kh@nyu.edu" };
+		RequestParams params = CommonFunctions.setParams(
+				AppPreferences.ServerVariables.SCHEME,
+				AppPreferences.ServerVariables.AUTHORITY, values);
+		new GetLocationOfPeers().execute(params);
+
+	}
+
+	@Override
+	public void onConnectionSuspended(int arg0) {
+	}
+
+	// asnyc tasks
+	public class GetLocationOfPeers extends
+			AsyncTask<RequestParams, Void, String> {
 
 		@Override
-		protected Void doInBackground(Void... params) {
-
-			return null;
+		protected String doInBackground(RequestParams... params) {
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
-		protected void onPostExecute(Void result) {
-			Toast.makeText(MainActivity.this, "in onPostExecute",
-					Toast.LENGTH_SHORT).show();
+		protected void onPostExecute(String result) {
 			Log.d(TAG, "in onPostExecuted");
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.694296, -73.986164)).title("peer"));
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.694270, -73.986150)).title("peer"));
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.694100, -73.986200)).title("peer"));
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.694350, -73.986250)).title("peer"));
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.6907870, -73.987409)).title("peer"));
-			mMap.addMarker(new MarkerOptions().position(
-					new LatLng(40.690855, -73.9885060)).title("peer"));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.694296, -73.986164))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.694270, -73.986150))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.694100, -73.986200))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.694350, -73.986250))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.6907870, -73.987409))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
+			mMap.addMarker(new MarkerOptions()
+					.position(new LatLng(40.690855, -73.9885060))
+					.title("peer")
+					.icon(BitmapDescriptorFactory
+							.fromResource(R.drawable.custommarker)));
 
 		}
 
@@ -409,33 +354,28 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// TODO Auto-generated method stub
-			return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 		}
 
 	}
 
-	public class GetLocationsAsyncTask extends
+	public class SendLocationsAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// TODO Auto-generated method stub
-			return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 		}
 
 	}
-
 }

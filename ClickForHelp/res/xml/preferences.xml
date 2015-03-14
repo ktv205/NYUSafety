@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <ListPreference
+
+    <ListPreference
         android:defaultValue="2"
-        android:dependency="pref_sync"
-        android:dialogTitle="location setttings"
+        android:dialogTitle="@string/string_location_settings"
         android:entries="@array/locationupdates"
         android:entryValues="@array/locationupdateValues"
-        android:key="pref_syncConnectionType"
-        android:title="location update settings" />
+        android:key="@string/string_key_location_settings"
+        android:title="@string/string_location_settings" />
 
 </PreferenceScreen>

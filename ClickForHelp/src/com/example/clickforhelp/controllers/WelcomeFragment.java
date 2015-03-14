@@ -18,10 +18,11 @@ public class WelcomeFragment extends Fragment {
 	private View view;
 	private final String TAG = "WelcomeFragment";
 	private OnClickAuthentication auth;
-	
+
 	public interface OnClickAuthentication {
 		public void onClickAuthButton(int flag);
 	}
+
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -44,12 +45,21 @@ public class WelcomeFragment extends Fragment {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setRetainInstance(true);
+	}
+
+	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		Button SignupButton = (Button) view
 				.findViewById(R.id.welcome_button_signup);
 		TextView loginTextView = (TextView) view
 				.findViewById(R.id.welcome_text_login);
+		loginTextView.setTag("hello");
+		TextView another=(TextView) view.findViewWithTag("hello");
+		another.setText("signin");
 		SignupButton.setOnClickListener(new OnClickListener() {
 
 			@Override

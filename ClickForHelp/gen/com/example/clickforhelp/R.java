@@ -473,16 +473,17 @@ containing a value of this type.
         public static final int common_signin_btn_text_pressed_dark=0x7f020018;
         public static final int common_signin_btn_text_pressed_light=0x7f020019;
         public static final int custom_button=0x7f02001a;
-        public static final int ic_launcher=0x7f02001b;
-        public static final int ic_plusone_medium_off_client=0x7f02001c;
-        public static final int ic_plusone_small_off_client=0x7f02001d;
-        public static final int ic_plusone_standard_off_client=0x7f02001e;
-        public static final int ic_plusone_tall_off_client=0x7f02001f;
-        public static final int powered_by_google_dark=0x7f020020;
-        public static final int powered_by_google_light=0x7f020021;
+        public static final int custommarker=0x7f02001b;
+        public static final int ic_launcher=0x7f02001c;
+        public static final int ic_plusone_medium_off_client=0x7f02001d;
+        public static final int ic_plusone_small_off_client=0x7f02001e;
+        public static final int ic_plusone_standard_off_client=0x7f02001f;
+        public static final int ic_plusone_tall_off_client=0x7f020020;
+        public static final int powered_by_google_dark=0x7f020021;
+        public static final int powered_by_google_light=0x7f020022;
     }
     public static final class id {
-        public static final int action_settings=0x7f0d002a;
+        public static final int action_settings=0x7f0d002c;
         public static final int adjust_height=0x7f0d0000;
         public static final int adjust_width=0x7f0d0001;
         public static final int authentication_parent0_linear=0x7f0d0017;
@@ -496,10 +497,11 @@ containing a value of this type.
         public static final int holo_dark=0x7f0d0007;
         public static final int holo_light=0x7f0d0008;
         public static final int hybrid=0x7f0d0003;
+        public static final int login_back=0x7f0d0026;
         public static final int login_button_submit=0x7f0d001d;
         public static final int login_edit_email=0x7f0d001b;
         public static final int login_edit_password=0x7f0d001c;
-        public static final int map=0x7f0d0029;
+        public static final int map=0x7f0d002b;
         public static final int match_parent=0x7f0d000e;
         public static final int monochrome=0x7f0d0016;
         public static final int none=0x7f0d0002;
@@ -508,22 +510,23 @@ containing a value of this type.
         public static final int sandbox=0x7f0d000a;
         public static final int satellite=0x7f0d0005;
         public static final int selectionDetails=0x7f0d000d;
-        public static final int signup_button_submit=0x7f0d0024;
-        public static final int signup_edit_email=0x7f0d001f;
-        public static final int signup_edit_name=0x7f0d001e;
-        public static final int signup_edit_password=0x7f0d0021;
-        public static final int signup_edit_phone=0x7f0d0020;
-        public static final int signup_edit_repassword=0x7f0d0022;
-        public static final int signup_relativelayout_button=0x7f0d0023;
+        public static final int signup_back=0x7f0d001e;
+        public static final int signup_button_submit=0x7f0d0025;
+        public static final int signup_edit_email=0x7f0d0020;
+        public static final int signup_edit_name=0x7f0d001f;
+        public static final int signup_edit_password=0x7f0d0022;
+        public static final int signup_edit_phone=0x7f0d0021;
+        public static final int signup_edit_repassword=0x7f0d0023;
+        public static final int signup_relativelayout_button=0x7f0d0024;
         public static final int strict_sandbox=0x7f0d000b;
         public static final int terrain=0x7f0d0006;
         public static final int verification_button_submit=0x7f0d001a;
         public static final int verification_edit_code=0x7f0d0018;
         public static final int verification_text_resend=0x7f0d0019;
-        public static final int welcome_button_signup=0x7f0d0026;
-        public static final int welcome_parent0_relative=0x7f0d0025;
-        public static final int welcome_text_login=0x7f0d0028;
-        public static final int welcome_text_member=0x7f0d0027;
+        public static final int welcome_button_signup=0x7f0d0028;
+        public static final int welcome_parent0_relative=0x7f0d0027;
+        public static final int welcome_text_login=0x7f0d002a;
+        public static final int welcome_text_member=0x7f0d0029;
         public static final int wrap_content=0x7f0d000f;
     }
     public static final class integer {
@@ -656,7 +659,10 @@ containing a value of this type.
         public static final int store_picture_message=0x7f070001;
         public static final int store_picture_title=0x7f070000;
         public static final int string_app_name=0x7f070032;
+        public static final int string_button_help=0x7f070036;
         public static final int string_button_signup=0x7f070026;
+        public static final int string_key_location_settings=0x7f070035;
+        public static final int string_location_settings=0x7f070034;
         public static final int string_nyu_signup=0x7f070033;
         public static final int string_text_atnyu=0x7f07002b;
         public static final int string_text_code=0x7f07002f;

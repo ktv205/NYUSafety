@@ -36,7 +36,7 @@ public class EmailVerificationActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				
 
 			}
 		});
@@ -112,7 +112,7 @@ public class EmailVerificationActivity extends Activity {
 			// intent.putExtra(AppPreferences.IntentExtras.signuptoverification,
 			// user);
 			EmailVerificationActivity.this.startActivity(intent);
-
+			finish();
 		}
 
 		public void jsonString(String result) {

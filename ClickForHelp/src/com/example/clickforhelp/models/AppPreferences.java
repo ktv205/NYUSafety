@@ -18,9 +18,13 @@ public class AppPreferences {
 		public final static String user_name="user_name";
 		public final static String user_email="user_email";
 		public final static String user_id="user_id";
-		public final static String flag="user_status";
-		
+		public final static String flag="user_status";	
 	}
+	public static abstract class ServerVariables{
+		public final static String SCHEME="http";
+		public final static String AUTHORITY="hacksafety.elasticbeanstalk.com";
+	}
+	
 	
 
 }

@@ -1,10 +1,14 @@
 package com.example.clickforhelp.controllers;
 
+import java.util.HashMap;
+
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
+import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 import com.example.clickforhelp.models.RequestParams;
 import com.example.clickforhelp.models.UserModel;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -16,6 +20,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SignupFragment extends Fragment {
@@ -28,8 +33,30 @@ public class SignupFragment extends Fragment {
 	private final static int DONT_MATCH = 4;
 	private final static int RESULT_OK = 5;
 	private final static int INVALID_EMAIL = 6;
-	private String name, email, password, reType;
+	private final static int PHONE_EMPTY = 7;
+	private String name, email, password, reType, phone;
 	private UserModel user;
+
+	 private SignupInterface signupInterface;
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		Log.d(TAG, "in onAttach");
+		 try {
+		 Log.d("connected", "in onAttach");
+		 signupInterface = (SignupInterface) activity;
+		 } catch (ClassCastException e) {
+		 throw new ClassCastException(activity.toString()
+		 + " must implement OnHeadlineSelectedListener");
+		 }
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setRetainInstance(true);
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,9 +66,22 @@ public class SignupFragment extends Fragment {
 		return view;
 	}
 
+	 public interface SignupInterface {
+	 public void switchToLogin();
+	 }
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		 TextView loginBack=(TextView)view.findViewById(R.id.login_back);
+		 loginBack.setOnClickListener(new OnClickListener() {
+		
+		 @Override
+		 public void onClick(View v) {
+		 signupInterface.switchToLogin();
+		
+		 }
+		 });
 		Button submitButton = (Button) view
 				.findViewById(R.id.signup_button_submit);
 		if (CommonFunctions.isConnected(getActivity())) {
@@ -63,10 +103,16 @@ public class SignupFragment extends Fragment {
 						message = "password do not match";
 					} else if (flag == INVALID_EMAIL) {
 						message = "enter valid nyu email";
+					} else if (flag == PHONE_EMPTY) {
+						message = "enter a valid phone number";
 					} else {
 						message = "everything looks good";
 						createUserModel();
-						RequestParams params = setParams();
+						String[] paths = { "public", "index.php", "adduser",
+								email, name, password, phone };
+						RequestParams params = CommonFunctions.setParams(
+								ServerVariables.SCHEME,
+								ServerVariables.AUTHORITY, paths);
 						new SendSignupDetailsAsyncTask().execute(params);
 					}
 					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
@@ -81,20 +127,14 @@ public class SignupFragment extends Fragment {
 	}
 
 	public void createUserModel() {
+		user=new UserModel();
 		user.setName(name);
 		user.setEmail(email);
 		user.setPassword(password);
-	}
-
-	public RequestParams setParams() {
-		RequestParams params = new RequestParams();
-		params.setURI("");
-		params.setMethod("POST");
-		params.setParam("user_name", user.getName());
-		params.setParam("user_email", user.getEmail());
-		params.setParam("password", user.getPassword());
-		return params;
-
+		HashMap<String, String> values=new HashMap<String, String>();
+		values.put(AppPreferences.SharedPref.user_name, name);
+		values.put(AppPreferences.SharedPref.user_email, email);
+		new CommonFunctions().saveInPreferences(getActivity(), AppPreferences.SharedPref.name, values);
 	}
 
 	public int getTextFromFields() {
@@ -106,10 +146,13 @@ public class SignupFragment extends Fragment {
 				.findViewById(R.id.signup_edit_password);
 		EditText reTypeEdittext = (EditText) view
 				.findViewById(R.id.signup_edit_repassword);
+		EditText phoneEdittext = (EditText) view
+				.findViewById(R.id.signup_edit_phone);
 		name = nameEdittext.getText().toString();
 		email = emailEdittext.getText().toString();
 		password = passwordEdittext.getText().toString();
 		reType = reTypeEdittext.getText().toString();
+		phone = phoneEdittext.getText().toString();
 		if (name.isEmpty()) {
 			return NAME_EMPTY;
 		} else if (email.isEmpty()) {
@@ -122,11 +165,11 @@ public class SignupFragment extends Fragment {
 			return DONT_MATCH;
 		} else if (!validNyuEmail(email)) {
 			return INVALID_EMAIL;
+		} else if (phone.isEmpty() || phone.length() > 10
+				|| phone.length() < 10) {
+			return PHONE_EMPTY;
 		} else {
 			user = new UserModel();
-			user.setName(name);
-			user.setEmail(email);
-			user.setPassword(password);
 			return RESULT_OK;
 
 		}
@@ -134,8 +177,12 @@ public class SignupFragment extends Fragment {
 
 	public boolean validNyuEmail(String email) {
 		String[] split = email.split("@");
-		if (split[1].equals("nyu.edu")) {
-			return true;
+		if (split.length > 1) {
+			if (split[1].equals("nyu.edu")) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -146,9 +193,7 @@ public class SignupFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// TODO Auto-generated method stub
-			// return new HttpManager().sendUserData(params[0]);
-			return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
@@ -161,10 +206,10 @@ public class SignupFragment extends Fragment {
 					user);
 			getActivity().startActivity(intent);
 			getActivity().finish();
-
 		}
 
 		public void jsonString(String result) {
+			
 
 		}
 
