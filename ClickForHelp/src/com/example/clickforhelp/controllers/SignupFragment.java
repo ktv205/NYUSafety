@@ -25,7 +25,7 @@ import android.widget.Toast;
 
 public class SignupFragment extends Fragment {
 	private View view;
-	private final String TAG = "WelcomeFragment";
+	private final String TAG = "SignupFragment";
 	private final static int NAME_EMPTY = 0;
 	private final static int EMAIL_EMPTY = 1;
 	private final static int PASSWORD_EMPTY = 2;
@@ -37,19 +37,19 @@ public class SignupFragment extends Fragment {
 	private String name, email, password, reType, phone;
 	private UserModel user;
 
-	 private SignupInterface signupInterface;
+	private SignupInterface signupInterface;
 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		Log.d(TAG, "in onAttach");
-		 try {
-		 Log.d("connected", "in onAttach");
-		 signupInterface = (SignupInterface) activity;
-		 } catch (ClassCastException e) {
-		 throw new ClassCastException(activity.toString()
-		 + " must implement OnHeadlineSelectedListener");
-		 }
+		try {
+			Log.d("connected", "in onAttach");
+			signupInterface = (SignupInterface) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnHeadlineSelectedListener");
+		}
 	}
 
 	@Override
@@ -66,22 +66,22 @@ public class SignupFragment extends Fragment {
 		return view;
 	}
 
-	 public interface SignupInterface {
-	 public void switchToLogin();
-	 }
+	public interface SignupInterface {
+		public void switchToLogin(int flag);
+	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		 TextView loginBack=(TextView)view.findViewById(R.id.login_back);
-		 loginBack.setOnClickListener(new OnClickListener() {
-		
-		 @Override
-		 public void onClick(View v) {
-		 signupInterface.switchToLogin();
-		
-		 }
-		 });
+		TextView loginBack = (TextView) view.findViewById(R.id.login_back);
+		loginBack.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				signupInterface.switchToLogin(1);
+
+			}
+		});
 		Button submitButton = (Button) view
 				.findViewById(R.id.signup_button_submit);
 		if (CommonFunctions.isConnected(getActivity())) {
@@ -127,14 +127,15 @@ public class SignupFragment extends Fragment {
 	}
 
 	public void createUserModel() {
-		user=new UserModel();
+		user = new UserModel();
 		user.setName(name);
 		user.setEmail(email);
 		user.setPassword(password);
-		HashMap<String, String> values=new HashMap<String, String>();
+		HashMap<String, String> values = new HashMap<String, String>();
 		values.put(AppPreferences.SharedPref.user_name, name);
 		values.put(AppPreferences.SharedPref.user_email, email);
-		new CommonFunctions().saveInPreferences(getActivity(), AppPreferences.SharedPref.name, values);
+		new CommonFunctions().saveInPreferences(getActivity(),
+				AppPreferences.SharedPref.name, values);
 	}
 
 	public int getTextFromFields() {
@@ -193,23 +194,18 @@ public class SignupFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return null;
+			//return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			jsonString(result);
-			Intent intent = new Intent(getActivity(),
-					EmailVerificationActivity.class);
-			intent.putExtra(AppPreferences.IntentExtras.signuptoverification,
-					user);
-			getActivity().startActivity(intent);
-			getActivity().finish();
+			signupInterface.switchToLogin(2);
 		}
 
 		public void jsonString(String result) {
-			
 
 		}
 

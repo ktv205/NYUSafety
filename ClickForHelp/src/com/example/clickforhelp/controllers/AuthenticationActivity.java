@@ -20,6 +20,7 @@ public class AuthenticationActivity extends Activity implements
 	private final static String WELCOMETAG = "WelcomeFragmentTAG";
 	private final static String LOGINTAG = "LoginFragmentTAG";
 	private final static String SIGNUPTAG = "SignupFragmentTAG";
+	private final static String VERIFYTAG = "EmailVerificationFragmentTAG";
 	private FragmentManager fragmentManager;
 	private FragmentTransaction fragmentTransaction;
 
@@ -133,8 +134,10 @@ public class AuthenticationActivity extends Activity implements
 		Log.d(TAG, "backstack->" + fragmentManager.getBackStackEntryCount());
 		Fragment loginFragment = fragmentManager.findFragmentByTag(LOGINTAG);
 		Fragment signupFragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
+		Fragment verfiyFragment = fragmentManager.findFragmentByTag(VERIFYTAG);
 		if ((loginFragment != null && loginFragment.isVisible())
 				|| (signupFragment != null && signupFragment.isVisible())) {
+			Log.d(TAG,"onbackstack login fragment");
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(WELCOMETAG);
 			if (fragment != null) {
@@ -144,25 +147,54 @@ public class AuthenticationActivity extends Activity implements
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
+		} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
+			Log.d(TAG,"verify fragment backstack");
+			fragmentTransaction = fragmentManager.beginTransaction();
+			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
+			if (fragment != null) {
+				Log.d(TAG, "fragment is not null");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						fragment, SIGNUPTAG).commit();
+			} else {
+				Log.d(TAG, "fragment is null");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						new SignupFragment(), SIGNUPTAG).commit();
+			}
+
 		} else {
+			Log.d(TAG,"welcome fragment backstack");
 			super.onBackPressed();
 		}
 
 	}
 
 	@Override
-	public void switchToLogin() {
+	public void switchToLogin(int flag) {
 		Log.d(TAG, "switchToLogin");
-		fragmentTransaction = fragmentManager.beginTransaction();
-		Fragment fragment = fragmentManager.findFragmentByTag(LOGINTAG);
-		if (fragment != null) {
-			Log.d(TAG, "fragment is not null");
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
-					fragment, LOGINTAG).commit();
+		if (flag == 1) {
+			fragmentTransaction = fragmentManager.beginTransaction();
+			Fragment fragment = fragmentManager.findFragmentByTag(LOGINTAG);
+			if (fragment != null) {
+				Log.d(TAG, "fragment is not null");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						fragment, LOGINTAG).commit();
+			} else {
+				Log.d(TAG, "fragment is null");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						new LoginFragment(), LOGINTAG).commit();
+			}
 		} else {
-			Log.d(TAG, "fragment is null");
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
-					new LoginFragment(), LOGINTAG).commit();
+			fragmentTransaction = fragmentManager.beginTransaction();
+			Fragment fragment = fragmentManager.findFragmentByTag(VERIFYTAG);
+			if (fragment != null) {
+				Log.d(TAG, "fragment is not null");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						fragment, VERIFYTAG).commit();
+			} else {
+				Log.d(TAG, "fragment is null verify");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						new EmailVerificationFragment(), VERIFYTAG).commit();
+			}
 		}
 	}
 

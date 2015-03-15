@@ -1,6 +1,9 @@
 package com.example.clickforhelp.controllers;
 
+import java.util.HashMap;
+
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.models.AppPreferences;
 //import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 import com.example.clickforhelp.models.RequestParams;
@@ -37,13 +40,13 @@ public class LoginFragment extends Fragment {
 		super.onAttach(activity);
 
 		Log.d(TAG, "in onAttach");
-		 try {
-		 Log.d("connected", "in onAttach");
-		 loginInterface = (LoginInterface) activity;
-		 } catch (ClassCastException e) {
-		 throw new ClassCastException(activity.toString()
-		 + " must implement OnHeadlineSelectedListener");
-		 }
+		try {
+			Log.d("connected", "in onAttach");
+			loginInterface = (LoginInterface) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnHeadlineSelectedListener");
+		}
 	}
 
 	@Override
@@ -54,9 +57,9 @@ public class LoginFragment extends Fragment {
 		return view;
 	}
 
-	 public interface LoginInterface {
-	 public void switchToSignup();
-	 }
+	public interface LoginInterface {
+		public void switchToSignup();
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -67,15 +70,15 @@ public class LoginFragment extends Fragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		 TextView signupBack=(TextView)view.findViewById(R.id.signup_back);
-		 signupBack.setOnClickListener(new OnClickListener() {
-		
-		 @Override
-		 public void onClick(View v) {
-		 loginInterface.switchToSignup();
-		
-		 }
-		 });
+		TextView signupBack = (TextView) view.findViewById(R.id.signup_back);
+		signupBack.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				loginInterface.switchToSignup();
+
+			}
+		});
 		Button submitButton = (Button) view
 				.findViewById(R.id.login_button_submit);
 		if (CommonFunctions.isConnected(getActivity())) {
@@ -123,8 +126,6 @@ public class LoginFragment extends Fragment {
 			return PASSWORD_EMPTY;
 		} else {
 			user = new UserModel();
-			user.setEmail(email);
-			user.setPassword(password);
 			return RESULT_OK;
 		}
 	}
@@ -146,11 +147,19 @@ public class LoginFragment extends Fragment {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			Intent intent = new Intent(getActivity(), MainActivity.class);
-			// intent.putExtra(AppPreferences.IntentExtras.signuptoverification,
-			// user);
-			getActivity().startActivity(intent);
-			getActivity().finish();
+			if (result.equals("1")) {
+				HashMap<String, String> values = new HashMap<String, String>();
+				values.put(AppPreferences.SharedPref.user_email,
+						user.getEmail());
+				new CommonFunctions().saveInPreferences(getActivity(),
+						AppPreferences.SharedPref.name, values);
+				Intent intent = new Intent(getActivity(), MainActivity.class);
+				getActivity().startActivity(intent);
+				getActivity().finish();
+			} else {
+				Toast.makeText(getActivity(), "email or password mismatch",
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 
 		public void jsonString(String result) {

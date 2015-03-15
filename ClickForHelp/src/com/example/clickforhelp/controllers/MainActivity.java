@@ -89,13 +89,16 @@ public class MainActivity extends FragmentActivity implements
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Log.d(TAG, "received");
-				String message = intent.getExtras().getString("default");
-				Log.d(TAG, "message->" + message);
-				JSONObject obj = null;
-				try {
-					obj = new JSONObject(message);
-				} catch (JSONException e) {
-					e.printStackTrace();
+				String message = intent.getExtras().getString("message");
+				Log.d(TAG, intent.getExtras().toString());
+				if (message != null) {
+					Log.d(TAG, "message->" + message);
+					JSONObject obj = null;
+					try {
+						obj = new JSONObject(message);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
 				}
 
 			}
@@ -104,6 +107,7 @@ public class MainActivity extends FragmentActivity implements
 		this.registerReceiver(mReceiver, intentFilter);
 
 	}
+
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -279,8 +283,13 @@ public class MainActivity extends FragmentActivity implements
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
 					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
 					16));
-			String[] locationValues = { "public", "index.php",
-					"updatelocation", "userid",
+			String[] locationValues = {
+					"public",
+					"index.php",
+					"updatelocation",
+					getSharedPreferences(AppPreferences.SharedPref.name,
+							MODE_PRIVATE).getString(
+							AppPreferences.SharedPref.user_email, ""),
 					String.valueOf(mLastLocation.getLatitude()),
 					String.valueOf(mLastLocation.getLongitude()) };
 			RequestParams locationParams = CommonFunctions.setParams(
@@ -290,7 +299,13 @@ public class MainActivity extends FragmentActivity implements
 
 		} else {
 		}
-		String[] values = { "public", "index.php", "home", "kh@nyu.edu" };
+		String[] values = {
+				"public",
+				"index.php",
+				"home",
+				getSharedPreferences(AppPreferences.SharedPref.name,
+						MODE_PRIVATE).getString(
+						AppPreferences.SharedPref.user_email, "") };
 		RequestParams params = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, values);
@@ -354,7 +369,8 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return null;
+			// return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
@@ -369,7 +385,8 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return null;
+			// return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
