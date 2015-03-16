@@ -1,5 +1,7 @@
 package com.example.clickforhelp.controllers;
 
+import java.util.HashMap;
+
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
@@ -71,11 +73,10 @@ public class EmailVerificationFragment extends Fragment {
 					message = "please enter the verification code";
 				} else {
 					message = "everything looks good";
-					message = "everything looks good";
 					String[] values = {
 							"public",
 							"index.php",
-							"verificationcode",
+							"verify",
 							getActivity().getSharedPreferences(
 									AppPreferences.SharedPref.name,
 									Context.MODE_PRIVATE).getString(
@@ -111,21 +112,23 @@ public class EmailVerificationFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return null;
+			return "1";
 			// return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			jsonString(result);
-			Intent intent = new Intent(getActivity(), MainActivity.class);
-			getActivity().startActivity(intent);
-			getActivity().finish();
-		}
-
-		public void jsonString(String result) {
-
+			if (result.equals("1")) {
+				HashMap<String, String> values = new HashMap<String, String>();
+				values.put(AppPreferences.SharedPref.flag, "1");
+				Intent intent = new Intent(getActivity(), MainActivity.class);
+				getActivity().startActivity(intent);
+				getActivity().finish();
+			} else {
+				Toast.makeText(getActivity(), "code miss match",
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 
 	}
@@ -135,13 +138,19 @@ public class EmailVerificationFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// TODO Auto-generated method stub
 			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
+			if (result.equals("1")) {
+				Toast.makeText(getActivity(), "code resend", Toast.LENGTH_SHORT)
+						.show();
+			} else {
+				Toast.makeText(getActivity(), "please try again",
+						Toast.LENGTH_SHORT).show();
+			}
 			Log.d(TAG, "result in Request Verification code->" + result);
 		}
 

@@ -400,18 +400,22 @@ containing a value of this type.
         public static final int common_signin_btn_light_text_disabled=0x7f080006;
         public static final int common_signin_btn_light_text_focused=0x7f080007;
         public static final int common_signin_btn_light_text_pressed=0x7f080005;
-        public static final int common_signin_btn_text_dark=0x7f080023;
-        public static final int common_signin_btn_text_light=0x7f080024;
+        public static final int common_signin_btn_text_dark=0x7f080027;
+        public static final int common_signin_btn_text_light=0x7f080028;
         public static final int darkblue=0x7f08001c;
         public static final int darkgreen=0x7f08001e;
         public static final int darkorange=0x7f08001f;
         public static final int darkpurple=0x7f08001d;
         public static final int darkred=0x7f080020;
+        public static final int ghostwhite=0x7f080025;
         public static final int green=0x7f080019;
+        public static final int nyupurple=0x7f080026;
         public static final int orange=0x7f08001a;
         public static final int purple=0x7f080018;
         public static final int random1=0x7f080022;
+        public static final int random2=0x7f080023;
         public static final int red=0x7f08001b;
+        public static final int violet=0x7f080024;
         public static final int wallet_bright_foreground_disabled_holo_light=0x7f08000f;
         /** 
          Wallet colors to support consistent Wallet fragment holo dark UI in client application
@@ -430,8 +434,8 @@ containing a value of this type.
         public static final int wallet_hint_foreground_holo_light=0x7f080011;
         public static final int wallet_holo_blue_light=0x7f080015;
         public static final int wallet_link_text_light=0x7f080016;
-        public static final int wallet_primary_text_holo_light=0x7f080025;
-        public static final int wallet_secondary_text_holo_dark=0x7f080026;
+        public static final int wallet_primary_text_holo_light=0x7f080029;
+        public static final int wallet_secondary_text_holo_dark=0x7f08002a;
         public static final int white=0x7f080021;
     }
     public static final class dimen {
@@ -479,11 +483,12 @@ containing a value of this type.
         public static final int ic_plusone_small_off_client=0x7f02001e;
         public static final int ic_plusone_standard_off_client=0x7f02001f;
         public static final int ic_plusone_tall_off_client=0x7f020020;
-        public static final int powered_by_google_dark=0x7f020021;
-        public static final int powered_by_google_light=0x7f020022;
+        public static final int nyu_white=0x7f020021;
+        public static final int powered_by_google_dark=0x7f020022;
+        public static final int powered_by_google_light=0x7f020023;
     }
     public static final class id {
-        public static final int action_settings=0x7f0d002c;
+        public static final int action_settings=0x7f0d002f;
         public static final int adjust_height=0x7f0d0000;
         public static final int adjust_width=0x7f0d0001;
         public static final int authentication_parent0_linear=0x7f0d0017;
@@ -493,18 +498,19 @@ containing a value of this type.
         public static final int buy_with_google=0x7f0d0012;
         public static final int classic=0x7f0d0014;
         public static final int donate_with_google=0x7f0d0013;
-        public static final int fverification_button_submit=0x7f0d0026;
-        public static final int fverification_edit_code=0x7f0d0024;
-        public static final int fverification_text_resend=0x7f0d0025;
+        public static final int fverification_button_submit=0x7f0d0029;
+        public static final int fverification_edit_code=0x7f0d0027;
+        public static final int fverification_text_resend=0x7f0d0028;
         public static final int grayscale=0x7f0d0015;
         public static final int holo_dark=0x7f0d0007;
         public static final int holo_light=0x7f0d0008;
         public static final int hybrid=0x7f0d0003;
-        public static final int login_back=0x7f0d0023;
-        public static final int login_button_submit=0x7f0d001a;
-        public static final int login_edit_email=0x7f0d0018;
-        public static final int login_edit_password=0x7f0d0019;
-        public static final int map=0x7f0d002b;
+        public static final int login_back=0x7f0d0026;
+        public static final int login_button_submit=0x7f0d001e;
+        public static final int login_edit_email=0x7f0d001b;
+        public static final int login_edit_password=0x7f0d001c;
+        public static final int login_text_forgot=0x7f0d001d;
+        public static final int map=0x7f0d002e;
         public static final int match_parent=0x7f0d000e;
         public static final int monochrome=0x7f0d0016;
         public static final int none=0x7f0d0002;
@@ -513,20 +519,22 @@ containing a value of this type.
         public static final int sandbox=0x7f0d000a;
         public static final int satellite=0x7f0d0005;
         public static final int selectionDetails=0x7f0d000d;
-        public static final int signup_back=0x7f0d001b;
-        public static final int signup_button_submit=0x7f0d0022;
-        public static final int signup_edit_email=0x7f0d001d;
-        public static final int signup_edit_name=0x7f0d001c;
-        public static final int signup_edit_password=0x7f0d001f;
-        public static final int signup_edit_phone=0x7f0d001e;
-        public static final int signup_edit_repassword=0x7f0d0020;
-        public static final int signup_relativelayout_button=0x7f0d0021;
+        public static final int signup_back=0x7f0d001f;
+        public static final int signup_button_submit=0x7f0d0025;
+        public static final int signup_edit_email=0x7f0d0021;
+        public static final int signup_edit_name=0x7f0d0020;
+        public static final int signup_edit_password=0x7f0d0023;
+        public static final int signup_edit_phone=0x7f0d0022;
+        public static final int signup_edit_repassword=0x7f0d0024;
         public static final int strict_sandbox=0x7f0d000b;
         public static final int terrain=0x7f0d0006;
-        public static final int welcome_button_signup=0x7f0d0028;
-        public static final int welcome_parent0_relative=0x7f0d0027;
-        public static final int welcome_text_login=0x7f0d002a;
-        public static final int welcome_text_member=0x7f0d0029;
+        public static final int verification_button_submit=0x7f0d001a;
+        public static final int verification_edit_code=0x7f0d0018;
+        public static final int verification_text_resend=0x7f0d0019;
+        public static final int welcome_button_signup=0x7f0d002b;
+        public static final int welcome_parent0_relative=0x7f0d002a;
+        public static final int welcome_text_login=0x7f0d002d;
+        public static final int welcome_text_member=0x7f0d002c;
         public static final int wrap_content=0x7f0d000f;
     }
     public static final class integer {
@@ -534,7 +542,7 @@ containing a value of this type.
     }
     public static final class layout {
         public static final int activity_authentication=0x7f030000;
-        public static final int activity_main=0x7f030001;
+        public static final int activity_emailverification=0x7f030001;
         public static final int activity_settings=0x7f030002;
         public static final int fragment_login=0x7f030003;
         public static final int fragment_mypreferences=0x7f030004;
@@ -656,6 +664,10 @@ containing a value of this type.
         public static final int create_calendar_title=0x7f070004;
         public static final int decline=0x7f070003;
         public static final int hello_world=0x7f070024;
+        public static final int login=0x7f07003a;
+        public static final int login_forgot_password=0x7f070037;
+        public static final int login_not_member=0x7f070038;
+        public static final int register=0x7f070039;
         public static final int store_picture_message=0x7f070001;
         public static final int store_picture_title=0x7f070000;
         public static final int string_app_name=0x7f070032;
@@ -675,6 +687,7 @@ containing a value of this type.
         public static final int string_text_repassword=0x7f07002d;
         public static final int string_text_resend=0x7f070030;
         public static final int string_text_submit=0x7f070031;
+        public static final int verify=0x7f07003b;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
@@ -682,15 +695,6 @@ containing a value of this type.
     }
     public static final class style {
         /** 
-        Base application theme, dependent on API level. This theme is replaced
-        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
-    
-
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        
-
         Base application theme for API 11+. This theme completely replaces
         AppBaseTheme from res/values/styles.xml on API 11+ devices.
     
@@ -702,11 +706,8 @@ containing a value of this type.
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f060005;
-        /**  Application theme. 
- All customizations that are NOT specific to a particular API-level can go here. 
-         */
-        public static final int AppTheme=0x7f060006;
+        public static final int AppBaseTheme=0x7f06000a;
+        public static final int AppTheme=0x7f060005;
         public static final int Theme_IAPTheme=0x7f060000;
         public static final int WalletFragmentDefaultButtonTextAppearance=0x7f060003;
         public static final int WalletFragmentDefaultDetailsHeaderTextAppearance=0x7f060002;
@@ -717,6 +718,10 @@ containing a value of this type.
     
          */
         public static final int WalletFragmentDefaultStyle=0x7f060004;
+        public static final int buttons=0x7f060008;
+        public static final int edit_texts=0x7f060009;
+        public static final int myTheme_ActionBar=0x7f060006;
+        public static final int myTheme_ActionBar_Text=0x7f060007;
     }
     public static final class xml {
         public static final int preferences=0x7f040000;

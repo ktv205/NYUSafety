@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name" translatable="false">ClickForHelp</string>
+    <string name="app_name" translatable="false">NYU Safety</string>
     <string name="hello_world" translatable="false">Hello world!</string>
     <string name="action_settings" translatable="false">Settings</string>
-    <string name="string_button_signup" translatable="false">signup</string>
-    <string name="string_text_login" translatable="false">login</string>
+    <string name="string_button_signup" translatable="false">Sign up</string>
+    <string name="string_text_login" translatable="false">Log in</string>
     <string name="string_text_member" translatable="false">Already a member?</string>
-    <string name="string_text_name" translatable="false">Name</string>
-    <string name="string_text_email" translatable="false">Email</string>
-    <string name="string_text_atnyu" translatable="false">nyu email</string>
-    <string name="string_text_password" translatable="false">password</string>
-    <string name="string_text_repassword" translatable="false">re-enter</string>
-    <string name="string_text_phone" translatable="false">phone</string>
-    <string name="string_text_code" translatable="false">verification code</string>
-    <string name="string_text_resend" translatable="false">resend?</string>
-    <string name="string_text_submit" translatable="false">submit</string>
+    <string name="string_text_name" translatable="false"><i>Name</i></string>
+    <string name="string_text_email" translatable="false"><i>Email</i></string>
+    <string name="string_text_atnyu" translatable="false"><i>NYU email</i></string>
+    <string name="string_text_password" translatable="false"><i>Password</i></string>
+    <string name="string_text_repassword" translatable="false"><i>Re-enter</i></string>
+    <string name="string_text_phone" translatable="false"><i>Phone</i></string>
+    <string name="string_text_code" translatable="false"><i>Verification code</i></string>
+    <string name="string_text_resend" translatable="false">Resend?</string>
+    <string name="string_text_submit" translatable="false">Submit</string>
     <string name="string_app_name" translatable="false">NYU SAFETY</string>
-    <string name="string_nyu_signup" translatable="false">signup with nyu email</string>
+    <string name="string_nyu_signup" translatable="false">Sign up with nyu email</string>
     <string name="string_location_settings" translatable="false">Location 
         Update Settings</string>
     <string name="string_key_location_settings" translatable="false">locationkey</string>
     <string name="string_button_help">Ask For Help</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_not_member">Not a member?</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="verify">Verify</string>
 
 </resources>

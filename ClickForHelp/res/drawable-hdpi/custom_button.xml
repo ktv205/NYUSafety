@@ -2,27 +2,27 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_pressed="true"><shape>
-            <gradient android:angle="270" android:endColor="@color/blue" android:startColor="@color/blue" />
+            <gradient android:angle="270" android:endColor="@color/white" android:startColor="@color/white" />
 
-            <stroke android:width="3dp" android:color="@color/green" />
+            <stroke android:width="3dp" android:color="@color/white" />
 
             <corners android:radius="3dp" />
 
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape></item>
     <item android:state_focused="true"><shape>
-            <gradient android:angle="270" android:endColor="@color/orange" android:startColor="@color/orange" />
+            <gradient android:angle="270" android:endColor="@color/white" android:startColor="@color/white" />
 
-            <stroke android:width="3dp" android:color="@color/blue" />
+            <stroke android:width="3dp" android:color="@color/white" />
 
             <corners android:radius="3dp" />
 
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape></item>
     <item><shape>
-            <gradient android:angle="270" android:endColor="@color/blue" android:startColor="@color/blue" />
+            <gradient android:angle="270" android:endColor="@color/white" android:startColor="@color/white" />
 
-            <stroke android:width="3dp" android:color="@color/blue" />
+            <stroke android:width="3dp" android:color="@color/white" />
 
             <corners android:radius="3dp" />
 

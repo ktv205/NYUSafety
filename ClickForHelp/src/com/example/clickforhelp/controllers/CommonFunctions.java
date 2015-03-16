@@ -13,7 +13,7 @@ import android.net.Uri;
 import android.util.Log;
 
 public class CommonFunctions {
-	private static final String TAG = "CheckConnection";
+	private static final String TAG = "CommonFunctions";
 
 	public static boolean isConnected(Context context) {
 		Log.d(TAG, "isConnected");
@@ -53,9 +53,10 @@ public class CommonFunctions {
 			String key = entry.getKey();
 			String value = entry.getValue();
 			edit.putString(key, value);
+			Log.d(TAG, "key->" + key + "value->" + value);
 		}
 		edit.commit();
 		return true;
 	}
-	
+
 }

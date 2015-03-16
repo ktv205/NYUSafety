@@ -6,6 +6,7 @@ import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
 import com.example.clickforhelp.controllers.WelcomeFragment.OnClickAuthentication;
 import com.example.clickforhelp.models.AppPreferences;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -29,6 +30,27 @@ public class AuthenticationActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
 		Log.d(TAG, "in onCreate");
+		int id = R.drawable.common_full_open_on_phone;
+		ActionBar bar = getActionBar();
+		bar.setIcon(R.drawable.nyu_white);
+		Log.d(TAG, "drawable id->" + id);
+		if (!getSharedPreferences(AppPreferences.SharedPref.name, MODE_PRIVATE)
+				.getString(AppPreferences.SharedPref.user_email, "").isEmpty()
+				&& getSharedPreferences(AppPreferences.SharedPref.name,
+						MODE_PRIVATE).getString(AppPreferences.SharedPref.flag,
+						"").equals("1")) {
+			startActivity(new Intent(this, MainActivity.class));
+			finish();
+		}
+		Log.d(TAG,
+				"email and flag->"
+						+ getSharedPreferences(AppPreferences.SharedPref.name,
+								MODE_PRIVATE).getString(
+								AppPreferences.SharedPref.user_email, "")
+						+ "flag->"
+						+ getSharedPreferences(AppPreferences.SharedPref.name,
+								MODE_PRIVATE).getString(
+								AppPreferences.SharedPref.flag, ""));
 		fragmentManager = getFragmentManager();
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = getFragmentManager().findFragmentByTag(WELCOMETAG);
@@ -61,24 +83,6 @@ public class AuthenticationActivity extends Activity implements
 	protected void onResume() {
 		super.onResume();
 		Log.d(TAG, "inOnResume");
-		Intent intent = getIntent();
-		fragmentTransaction = fragmentManager.beginTransaction();
-		if (intent != null) {
-			if (intent
-					.hasExtra(AppPreferences.IntentExtras.verificationtoauthentication)) {
-				int flag = intent
-						.getExtras()
-						.getInt(AppPreferences.IntentExtras.verificationtoauthentication);
-				if (flag == AppPreferences.Flags.BACK_FLAG) {
-					fragmentTransaction.replace(
-							R.id.authentication_parent0_linear,
-							new SignupFragment(), SIGNUPTAG);
-					fragmentTransaction.commit();
-				}
-			} else {
-
-			}
-		}
 	}
 
 	@Override
@@ -137,7 +141,7 @@ public class AuthenticationActivity extends Activity implements
 		Fragment verfiyFragment = fragmentManager.findFragmentByTag(VERIFYTAG);
 		if ((loginFragment != null && loginFragment.isVisible())
 				|| (signupFragment != null && signupFragment.isVisible())) {
-			Log.d(TAG,"onbackstack login fragment");
+			Log.d(TAG, "onbackstack login fragment");
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(WELCOMETAG);
 			if (fragment != null) {
@@ -148,7 +152,7 @@ public class AuthenticationActivity extends Activity implements
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
 		} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
-			Log.d(TAG,"verify fragment backstack");
+			Log.d(TAG, "verify fragment backstack");
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
 			if (fragment != null) {
@@ -162,7 +166,7 @@ public class AuthenticationActivity extends Activity implements
 			}
 
 		} else {
-			Log.d(TAG,"welcome fragment backstack");
+			Log.d(TAG, "welcome fragment backstack");
 			super.onBackPressed();
 		}
 

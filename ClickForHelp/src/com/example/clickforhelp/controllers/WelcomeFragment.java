@@ -53,14 +53,12 @@ public class WelcomeFragment extends Fragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		Button SignupButton = (Button) view
+		Button signupButton = (Button) view
 				.findViewById(R.id.welcome_button_signup);
 		TextView loginTextView = (TextView) view
 				.findViewById(R.id.welcome_text_login);
-		loginTextView.setTag("hello");
-		TextView another=(TextView) view.findViewWithTag("hello");
-		another.setText("signin");
-		SignupButton.setOnClickListener(new OnClickListener() {
+		
+		signupButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {

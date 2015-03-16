@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/welcome_parent0_relative"
+    android:background="@color/nyupurple"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -12,7 +13,7 @@
         android:background="@drawable/custom_button"
         android:padding="12dp"
         android:text="@string/string_nyu_signup"
-        android:textColor="@color/white"
+        android:textColor="@color/nyupurple"
         android:textSize="25sp" >
     </Button>
 
@@ -23,7 +24,7 @@
         android:layout_centerInParent="true"
         android:layout_marginBottom="30dp"
         android:text="@string/string_app_name"
-        android:textColor="@color/darkpurple"
+        android:textColor="@color/white"
         android:textSize="60sp" >
     </TextView>
 
@@ -37,6 +38,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
+        android:textColor="@color/white"
         android:text="@string/string_text_member"
         android:textSize="20sp" >
     </TextView>

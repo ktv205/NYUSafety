@@ -10,7 +10,6 @@ import com.example.clickforhelp.models.UserModel;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -134,6 +133,7 @@ public class SignupFragment extends Fragment {
 		HashMap<String, String> values = new HashMap<String, String>();
 		values.put(AppPreferences.SharedPref.user_name, name);
 		values.put(AppPreferences.SharedPref.user_email, email);
+		values.put(AppPreferences.SharedPref.flag, "0");
 		new CommonFunctions().saveInPreferences(getActivity(),
 				AppPreferences.SharedPref.name, values);
 	}
@@ -194,18 +194,26 @@ public class SignupFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return null;
-			//return new HttpManager().sendUserData(params[0]);
+			// return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			jsonString(result);
-			signupInterface.switchToLogin(2);
-		}
-
-		public void jsonString(String result) {
+			if (result != null) {
+				if (result.equals(1)) {
+					signupInterface.switchToLogin(2);
+				} else {
+					Toast.makeText(getActivity(),
+							"something went wrong please signup again",
+							Toast.LENGTH_SHORT).show();
+				}
+			} else {
+				Toast.makeText(getActivity(),
+						"something went wrong please signup again",
+						Toast.LENGTH_SHORT).show();
+			}
 
 		}
 

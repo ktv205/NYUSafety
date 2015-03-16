@@ -323,7 +323,8 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return null;
+			//return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
