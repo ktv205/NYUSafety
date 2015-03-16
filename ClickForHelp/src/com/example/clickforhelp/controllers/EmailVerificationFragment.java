@@ -122,6 +122,8 @@ public class EmailVerificationFragment extends Fragment {
 			if (result.equals("1")) {
 				HashMap<String, String> values = new HashMap<String, String>();
 				values.put(AppPreferences.SharedPref.flag, "1");
+				new CommonFunctions().saveInPreferences(getActivity(),
+						AppPreferences.SharedPref.name, values);
 				Intent intent = new Intent(getActivity(), MainActivity.class);
 				getActivity().startActivity(intent);
 				getActivity().finish();
@@ -144,7 +146,7 @@ public class EmailVerificationFragment extends Fragment {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			if (result.equals("1")) {
+			if (result.contains("1")) {
 				Toast.makeText(getActivity(), "code resend", Toast.LENGTH_SHORT)
 						.show();
 			} else {

@@ -206,8 +206,13 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private void sendRegistrationIdToBackend(String regid) {
-		String[] values = { "public", "index.php", "updategcm", "useremail",
-				regid };
+		String[] values = {
+				"public",
+				"index.php",
+				"updategcm",
+				getSharedPreferences(AppPreferences.SharedPref.name,
+						MODE_PRIVATE).getString(
+						AppPreferences.SharedPref.user_email, ""), regid };
 		RequestParams params = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, values);
@@ -283,19 +288,6 @@ public class MainActivity extends FragmentActivity implements
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
 					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
 					16));
-			String[] locationValues = {
-					"public",
-					"index.php",
-					"updatelocation",
-					getSharedPreferences(AppPreferences.SharedPref.name,
-							MODE_PRIVATE).getString(
-							AppPreferences.SharedPref.user_email, ""),
-					String.valueOf(mLastLocation.getLatitude()),
-					String.valueOf(mLastLocation.getLongitude()) };
-			RequestParams locationParams = CommonFunctions.setParams(
-					AppPreferences.ServerVariables.SCHEME,
-					AppPreferences.ServerVariables.AUTHORITY, locationValues);
-			new SendLocationsAsyncTask().execute(locationParams);
 
 		} else {
 		}
@@ -323,8 +315,8 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return null;
-			//return new HttpManager().sendUserData(params[0]);
+			// return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
@@ -370,8 +362,8 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return null;
-			// return new HttpManager().sendUserData(params[0]);
+			// return null;
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
@@ -381,19 +373,4 @@ public class MainActivity extends FragmentActivity implements
 
 	}
 
-	public class SendLocationsAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return null;
-			// return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-		}
-
-	}
 }

@@ -203,7 +203,7 @@ public class SignupFragment extends Fragment {
 			super.onPostExecute(result);
 			if (result != null) {
 				Log.d(TAG, "result is not null->" + result);
-				if (result.equals("1")) {
+				if (result.contains("1")) {
 					signupInterface.switchToLogin(2);
 				} else {
 					Toast.makeText(getActivity(),

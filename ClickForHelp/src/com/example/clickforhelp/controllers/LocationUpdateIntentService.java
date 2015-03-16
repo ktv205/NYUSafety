@@ -1,5 +1,7 @@
 package com.example.clickforhelp.controllers;
 
+import com.example.clickforhelp.models.AppPreferences;
+import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -11,6 +13,7 @@ import com.google.android.gms.location.LocationServices;
 import android.app.IntentService;
 import android.content.Intent;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -80,6 +83,35 @@ public class LocationUpdateIntentService extends IntentService implements
 	@Override
 	public void onLocationChanged(Location arg0) {
 		Log.d(TAG, "in onLocationChanged");
+		String[] locationValues = {
+				"public",
+				"index.php",
+				"updatelocation",
+				getSharedPreferences(AppPreferences.SharedPref.name,
+						MODE_PRIVATE).getString(
+						AppPreferences.SharedPref.user_email, ""),
+				String.valueOf(arg0.getLatitude()),
+				String.valueOf(arg0.getLongitude()) };
+		RequestParams locationParams = CommonFunctions.setParams(
+				AppPreferences.ServerVariables.SCHEME,
+				AppPreferences.ServerVariables.AUTHORITY, locationValues);
+		new SendLocationsAsyncTask().execute(locationParams);
+
+	}
+
+	public class SendLocationsAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
+
+		@Override
+		protected String doInBackground(RequestParams... params) {
+			// return null;
+			return new HttpManager().sendUserData(params[0]);
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+		}
 
 	}
 
