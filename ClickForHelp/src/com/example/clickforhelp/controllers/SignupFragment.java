@@ -202,7 +202,8 @@ public class SignupFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			if (result != null) {
-				if (result.equals(1)) {
+				Log.d(TAG, "result is not null->" + result);
+				if (result.equals("1")) {
 					signupInterface.switchToLogin(2);
 				} else {
 					Toast.makeText(getActivity(),
@@ -210,6 +211,7 @@ public class SignupFragment extends Fragment {
 							Toast.LENGTH_SHORT).show();
 				}
 			} else {
+				Log.d(TAG, "result is null");
 				Toast.makeText(getActivity(),
 						"something went wrong please signup again",
 						Toast.LENGTH_SHORT).show();

@@ -24,8 +24,8 @@ public class HttpManager {
 		URL url = null;
 		try {
 			if (params.getMethod() == "GET") {
-				url = new URL(params.getURI() + "?" + params.getEncodedParams());
-				Log.d(TAG, params.getURI() + "?" + params.getEncodedParams());
+				url = new URL(params.getURI());
+				Log.d(TAG, params.getURI());
 			} else {
 				url = new URL(params.getURI());
 			}
@@ -65,6 +65,7 @@ public class HttpManager {
 		}
 
 		BufferedReader reader = null;
+		Log.d(TAG, "after the buffer reader");
 		StringBuilder sb = new StringBuilder();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
@@ -81,6 +82,7 @@ public class HttpManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		Log.d(TAG, "after the open connection");
 		Log.d(TAG, sb.toString());
 		return sb.toString();
 
