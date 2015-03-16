@@ -101,6 +101,11 @@ public class LocationUpdateIntentService extends IntentService implements
 
 	public class SendLocationsAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			Log.d(TAG,"onPreExecute");
+		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {

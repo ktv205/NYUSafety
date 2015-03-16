@@ -37,6 +37,9 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements
@@ -71,10 +74,10 @@ public class MainActivity extends FragmentActivity implements
 		if (CommonFunctions.isConnected(context)) {
 			buildGoogleApiClient();
 			initializeMapFields();
-			// Intent serviceIntent = new Intent(this,
-			// LocationUpdateService.class);
-			// startService(serviceIntent);
+			Intent serviceIntent = new Intent(this, LocationUpdateService.class);
+			startService(serviceIntent);
 			gcmServiceImplementation();
+
 			intentFilter = new IntentFilter(
 					"com.google.android.c2dm.intent.RECEIVE");
 			intentFilter.addCategory("com.example.clickforhelp");
@@ -105,7 +108,25 @@ public class MainActivity extends FragmentActivity implements
 		};
 
 		this.registerReceiver(mReceiver, intentFilter);
+		Button helpButton = (Button) findViewById(R.id.button_help);
+		helpButton.setOnClickListener(new OnClickListener() {
 
+			@Override
+			public void onClick(View v) {
+				String[] values = {
+						"public",
+						"index.php",
+						"askhelp",
+						getSharedPreferences(AppPreferences.SharedPref.name,
+								MODE_PRIVATE).getString(
+								AppPreferences.SharedPref.user_email, "") };
+				RequestParams params = CommonFunctions.setParams(
+						AppPreferences.ServerVariables.SCHEME,
+						AppPreferences.ServerVariables.AUTHORITY, values);
+				new AskHelpAsyncTask().execute(params);
+
+			}
+		});
 	}
 
 	@Override
@@ -369,6 +390,17 @@ public class MainActivity extends FragmentActivity implements
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
+		}
+
+	}
+
+	public class AskHelpAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
+
+		@Override
+		protected String doInBackground(RequestParams... params) {
+
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 	}

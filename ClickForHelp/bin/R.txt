@@ -119,11 +119,12 @@ int drawable ic_plusone_tall_off_client 0x7f020020
 int drawable nyu_white 0x7f020021
 int drawable powered_by_google_dark 0x7f020022
 int drawable powered_by_google_light 0x7f020023
-int id action_settings 0x7f0d002c
+int id action_settings 0x7f0d002d
 int id adjust_height 0x7f0d0000
 int id adjust_width 0x7f0d0001
 int id authentication_parent0_linear 0x7f0d0017
 int id book_now 0x7f0d0010
+int id button_help 0x7f0d002c
 int id buyButton 0x7f0d000c
 int id buy_now 0x7f0d0011
 int id buy_with_google 0x7f0d0012
