@@ -1,6 +1,7 @@
 package com.example.clickforhelp.controllers;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONException;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
+import com.example.clickforhelp.models.LocationDetailsModel;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -23,6 +25,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -41,20 +44,25 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
+	private final static String TAG = "MainActivity";
+
 	private Context context;
+
 	private MapFragment mapFragment;
 	private GoogleMap mMap;
-	private final static String TAG = "MainActivity";
-	private GoogleApiClient mGoogleApiClient;
 	private Location mLastLocation;
+	private GoogleApiClient mGoogleApiClient;
+
 	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 	public static final String EXTRA_MESSAGE = "message";
 	public static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
+
 	private IntentFilter intentFilter;
 	private BroadcastReceiver mReceiver;
 
@@ -62,22 +70,23 @@ public class MainActivity extends FragmentActivity implements
 	TextView mDisplay;
 	GoogleCloudMessaging gcm;
 	AtomicInteger msgId = new AtomicInteger();
-	SharedPreferences prefs;
 	String regid;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.d(TAG, "in onCreate");
+		// Log.d(TAG, "in onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.test_map);
 		context = getApplicationContext();
 		if (CommonFunctions.isConnected(context)) {
-			buildGoogleApiClient();
-			initializeMapFields();
-			Intent serviceIntent = new Intent(this, LocationUpdateService.class);
-			startService(serviceIntent);
-			gcmServiceImplementation();
 
+			// starting a service to send location updates to server
+			// Intent serviceIntent = new Intent(this,
+			// LocationUpdateService.class);
+			// startService(serviceIntent);
+			// gcmServiceImplementation();
+
+			// broadcast receiver
 			intentFilter = new IntentFilter(
 					"com.google.android.c2dm.intent.RECEIVE");
 			intentFilter.addCategory("com.example.clickforhelp");
@@ -87,15 +96,17 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mapFragment.getMapAsync(this);
+		// map stuff
+		initializeMapFields();
+		// anonymous broadcastReceiver
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d(TAG, "received");
+				// Log.d(TAG, "received");
 				String message = intent.getExtras().getString("message");
-				Log.d(TAG, intent.getExtras().toString());
+				// Log.d(TAG, intent.getExtras().toString());
 				if (message != null) {
-					Log.d(TAG, "message->" + message);
+					// Log.d(TAG, "message->" + message);
 					JSONObject obj = null;
 					try {
 						obj = new JSONObject(message);
@@ -103,11 +114,11 @@ public class MainActivity extends FragmentActivity implements
 						e.printStackTrace();
 					}
 				}
-
 			}
 		};
-
 		this.registerReceiver(mReceiver, intentFilter);
+
+		// help button and accessing AskHelpAsyncTask
 		Button helpButton = (Button) findViewById(R.id.button_help);
 		helpButton.setOnClickListener(new OnClickListener() {
 
@@ -136,6 +147,12 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
+	protected void onStop() {
+		super.onStop();
+		mGoogleApiClient.disconnect();
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
@@ -155,18 +172,18 @@ public class MainActivity extends FragmentActivity implements
 	// GCM STUFF
 	public void gcmServiceImplementation() {
 		context = getApplicationContext();
-		Log.d(TAG, "in gcmImp");
+		// Log.d(TAG, "in gcmImp");
 		if (checkPlayServices()) {
-			Log.d(TAG, "playServices available in gcmImp");
+			// Log.d(TAG, "playServices available in gcmImp");
 			gcm = GoogleCloudMessaging.getInstance(this);
 			regid = getRegistrationId(context);
-			Log.d(TAG, "regId" + regid);
+			// Log.d(TAG, "regId" + regid);
 			if (regid.isEmpty()) {
 				registerInBackground();
 			}
 
 		} else {
-			Log.d(TAG, "playServices not available in onCreate");
+			// Log.d(TAG, "playServices not available in onCreate");
 		}
 	}
 
@@ -174,7 +191,7 @@ public class MainActivity extends FragmentActivity implements
 		final SharedPreferences prefs = getGCMPreferences(context);
 		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
 		if (registrationId.isEmpty()) {
-			Log.i(TAG, "Registration not found.");
+			// Log.i(TAG, "Registration not found.");
 			return "";
 		}
 
@@ -182,7 +199,7 @@ public class MainActivity extends FragmentActivity implements
 				Integer.MIN_VALUE);
 		int currentVersion = getAppVersion(context);
 		if (registeredVersion != currentVersion) {
-			Log.i(TAG, "App version changed.");
+			// Log.i(TAG, "App version changed.");
 			return "";
 		}
 		return registrationId;
@@ -243,7 +260,7 @@ public class MainActivity extends FragmentActivity implements
 	private void storeRegistrationId(Context context, String regId) {
 		final SharedPreferences prefs = getGCMPreferences(context);
 		int appVersion = getAppVersion(context);
-		Log.i(TAG, "Saving regId on app version " + appVersion);
+		// Log.i(TAG, "Saving regId on app version " + appVersion);
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.putString(PROPERTY_REG_ID, regId);
 		editor.putInt(PROPERTY_APP_VERSION, appVersion);
@@ -251,7 +268,7 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public boolean checkPlayServices() {
-		Log.d(TAG, "in checkPlayServices");
+		// Log.d(TAG, "in checkPlayServices");
 		int resultCode = GooglePlayServicesUtil
 				.isGooglePlayServicesAvailable(this);
 		if (resultCode != ConnectionResult.SUCCESS) {
@@ -259,7 +276,7 @@ public class MainActivity extends FragmentActivity implements
 				GooglePlayServicesUtil.getErrorDialog(resultCode, this,
 						PLAY_SERVICES_RESOLUTION_REQUEST).show();
 			} else {
-				Log.i(TAG, "This device is not supported.");
+				// Log.i(TAG, "This device is not supported.");
 				finish();
 			}
 			return false;
@@ -268,6 +285,7 @@ public class MainActivity extends FragmentActivity implements
 		}
 	}
 
+	// Map and location stuff
 	protected synchronized void buildGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
@@ -276,7 +294,6 @@ public class MainActivity extends FragmentActivity implements
 		mGoogleApiClient.connect();
 	}
 
-	// MAP stuff
 	private void initializeMapFields() {
 		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
 				R.id.map);
@@ -285,15 +302,10 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public void onMapReady(GoogleMap arg0) {
+		Log.d(TAG, "map is ready");
 		mMap = arg0;
 		mMap.setMyLocationEnabled(true);
-		if (mLastLocation != null && mMap != null) {
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
-					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-					14));
-		} else {
-
-		}
+		buildGoogleApiClient();
 	}
 
 	@Override
@@ -305,13 +317,15 @@ public class MainActivity extends FragmentActivity implements
 	public void onConnected(Bundle arg0) {
 		mLastLocation = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
-		if (mLastLocation != null && mMap != null) {
+		if (mLastLocation != null) {
+			Log.d(TAG, "mLastLocation is not null");
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
 					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
 					16));
-
 		} else {
+			Log.d(TAG, "mLastLocation is null");
 		}
+		// Getting location details from server
 		String[] values = {
 				"public",
 				"index.php",
@@ -333,6 +347,15 @@ public class MainActivity extends FragmentActivity implements
 	// asnyc tasks
 	public class GetLocationOfPeers extends
 			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setMessage("Please wait while we look for people near you");
+			dialog.show();
+		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
@@ -342,37 +365,25 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected void onPostExecute(String result) {
+			dialog.dismiss();
 			Log.d(TAG, "in onPostExecuted");
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.694296, -73.986164))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.694270, -73.986150))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.694100, -73.986200))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.694350, -73.986250))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.6907870, -73.987409))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
-			mMap.addMarker(new MarkerOptions()
-					.position(new LatLng(40.690855, -73.9885060))
-					.title("peer")
-					.icon(BitmapDescriptorFactory
-							.fromResource(R.drawable.custommarker)));
+			Log.d(TAG, result);
+			ArrayList<LocationDetailsModel> locations = new MyJSONParser()
+					.parseLocation(result);
+			if (locations.size() == 0) {
+				Toast.makeText(MainActivity.this, "no one is near you",
+						Toast.LENGTH_SHORT).show();
+			} else {
+				for (int i = 0; i < locations.size(); i++) {
+					mMap.addMarker(new MarkerOptions()
+							.position(
+									new LatLng(locations.get(i).getLatitude(),
+											locations.get(i).getLongitude()))
+							.title("friend")
+							.icon(BitmapDescriptorFactory
+									.fromResource(R.drawable.friends)));
+				}
+			}
 
 		}
 

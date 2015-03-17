@@ -1,6 +1,5 @@
 package com.example.clickforhelp.controllers;
 
-import com.example.clickforhelp.controllers.LocationUpdateIntentService.SendLocationsAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
@@ -54,8 +53,6 @@ public class LocationUpdateService extends Service implements
 		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 	}
 
-	
-
 	@Override
 	public void onConnected(Bundle arg0) {
 		Log.d(TAG, "in onConnected");
@@ -80,6 +77,7 @@ public class LocationUpdateService extends Service implements
 		// TODO Auto-generated method stub
 
 	}
+
 	@Override
 	public void onLocationChanged(Location arg0) {
 		Log.d(TAG, "in onLocationChanged");
@@ -104,7 +102,7 @@ public class LocationUpdateService extends Service implements
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			Log.d(TAG,"onPreExecute");
+			Log.d(TAG, "onPreExecute");
 		}
 
 		@Override
