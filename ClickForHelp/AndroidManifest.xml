@@ -38,7 +38,8 @@
         <activity
             android:name="com.example.clickforhelp.controllers.MainActivity"
             android:icon="@drawable/nyu_white"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.example.clickforhelp.controllers.AuthenticationActivity"
@@ -70,11 +71,12 @@
 
         <service android:name="com.example.clickforhelp.controllers.GcmIntentService" />
         <service
-            android:name="com.example.clickforhelp.controllers.LocationUpdateIntentService"
-            android:exported="false" />
-        <service
             android:name="com.example.clickforhelp.controllers.LocationUpdateService"
             android:exported="false" />
+        <service
+            android:name="com.example.clickforhelp.controllers.ReceiveLocationService"
+            android:exported="false" >
+        </service>
 
         <meta-data
             android:name="com.google.android.gms.version"

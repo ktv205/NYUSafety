@@ -48,19 +48,19 @@ public class LocationDetailsModel implements Parcelable {
 		return 0;
 	}
 
-	public static final Parcelable.Creator<LocationDetailsModel> creator = new Creator<LocationDetailsModel>() {
-
-		@Override
-		public LocationDetailsModel[] newArray(int size) {
-			// TODO Auto-generated method stub
-			return new LocationDetailsModel[size];
-		}
+	public static final Parcelable.Creator<LocationDetailsModel> CREATOR = new Parcelable.Creator<LocationDetailsModel>() {
 
 		@Override
 		public LocationDetailsModel createFromParcel(Parcel source) {
 			// TODO Auto-generated method stub
 			return new LocationDetailsModel(source);
 		}
+
+		@Override
+		public LocationDetailsModel[] newArray(int size) {
+			return new LocationDetailsModel[size];
+		}
+
 	};
 
 	@Override

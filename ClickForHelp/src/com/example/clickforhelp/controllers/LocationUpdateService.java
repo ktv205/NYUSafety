@@ -27,8 +27,9 @@ public class LocationUpdateService extends Service implements
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand");
 		buildGoogleApiClient();
+
 		return START_STICKY;
-	};
+	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -113,6 +114,7 @@ public class LocationUpdateService extends Service implements
 
 		@Override
 		protected void onPostExecute(String result) {
+			Log.d(TAG,"result->"+result);
 			super.onPostExecute(result);
 		}
 

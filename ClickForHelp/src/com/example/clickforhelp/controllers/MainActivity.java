@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.LocationDetailsModel;
@@ -23,9 +20,11 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.app.ProgressDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -50,6 +49,7 @@ public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
 	private final static String TAG = "MainActivity";
+	private ArrayList<Marker> markers;
 
 	private Context context;
 
@@ -65,12 +65,16 @@ public class MainActivity extends FragmentActivity implements
 
 	private IntentFilter intentFilter;
 	private BroadcastReceiver mReceiver;
+	private Intent sendLocationIntentService;
+	private Intent receiveLocationIntentService;
 
 	String SENDER_ID = "947264921784";
 	TextView mDisplay;
 	GoogleCloudMessaging gcm;
 	AtomicInteger msgId = new AtomicInteger();
 	String regid;
+	AlarmManager alarmManager;
+	PendingIntent pendingIntent;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,16 +85,44 @@ public class MainActivity extends FragmentActivity implements
 		if (CommonFunctions.isConnected(context)) {
 
 			// starting a service to send location updates to server
-			// Intent serviceIntent = new Intent(this,
-			// LocationUpdateService.class);
-			// startService(serviceIntent);
-			// gcmServiceImplementation();
+			sendLocationIntentService = new Intent(this,
+					LocationUpdateService.class);
+			startService(sendLocationIntentService);
 
-			// broadcast receiver
+			// starting a service and receiving locations
+			// receiveLocationIntentService = new Intent(this,
+			// ReceiveLocationService.class);
+			// startService(receiveLocationIntentService);
+
+			gcmServiceImplementation();
+
+			// location broadcast receiver
 			intentFilter = new IntentFilter(
-					"com.google.android.c2dm.intent.RECEIVE");
+					"com.example.clickforhelp.action_send");
 			intentFilter.addCategory("com.example.clickforhelp");
+
+			markers = new ArrayList<Marker>();
 		}
+	}
+
+	private void setLocationSendingAlarm() {
+
+		alarmManager = (AlarmManager) getApplicationContext().getSystemService(
+				Context.ALARM_SERVICE);
+		Intent intent = new Intent(getApplicationContext(),
+				ReceiveLocationService.class);
+		intent.putExtra("locationSendingAlarm", true);
+		pendingIntent = PendingIntent.getService(this, 987654321, intent, 0);
+		try {
+			alarmManager.cancel(pendingIntent);
+		} catch (Exception e) {
+
+		}
+		int timeForAlarm = 6000;
+
+		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+				System.currentTimeMillis() + timeForAlarm, timeForAlarm,
+				pendingIntent);
 	}
 
 	@Override
@@ -102,18 +134,16 @@ public class MainActivity extends FragmentActivity implements
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				// Log.d(TAG, "received");
-				String message = intent.getExtras().getString("message");
-				// Log.d(TAG, intent.getExtras().toString());
-				if (message != null) {
-					// Log.d(TAG, "message->" + message);
-					JSONObject obj = null;
-					try {
-						obj = new JSONObject(message);
-					} catch (JSONException e) {
-						e.printStackTrace();
+				if (markers.size() != 0) {
+					for (int i = 0; i < markers.size(); i++) {
+						markers.get(i).remove();
 					}
 				}
+				Toast.makeText(MainActivity.this, "received",
+						Toast.LENGTH_SHORT).show();
+				ArrayList<LocationDetailsModel> locations = intent
+						.getParcelableArrayListExtra("key");
+				fillMap(locations);
 			}
 		};
 		this.registerReceiver(mReceiver, intentFilter);
@@ -138,18 +168,27 @@ public class MainActivity extends FragmentActivity implements
 
 			}
 		});
+		setLocationSendingAlarm();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		this.unregisterReceiver(mReceiver);
+
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
 		mGoogleApiClient.disconnect();
+		alarmManager.cancel(pendingIntent);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
 	}
 
 	@Override
@@ -325,18 +364,18 @@ public class MainActivity extends FragmentActivity implements
 		} else {
 			Log.d(TAG, "mLastLocation is null");
 		}
-		// Getting location details from server
-		String[] values = {
-				"public",
-				"index.php",
-				"home",
-				getSharedPreferences(AppPreferences.SharedPref.name,
-						MODE_PRIVATE).getString(
-						AppPreferences.SharedPref.user_email, "") };
-		RequestParams params = CommonFunctions.setParams(
-				AppPreferences.ServerVariables.SCHEME,
-				AppPreferences.ServerVariables.AUTHORITY, values);
-		new GetLocationOfPeers().execute(params);
+		// // Getting location details from server
+		// String[] values = {
+		// "public",
+		// "index.php",
+		// "home",
+		// getSharedPreferences(AppPreferences.SharedPref.name,
+		// MODE_PRIVATE).getString(
+		// AppPreferences.SharedPref.user_email, "") };
+		// RequestParams params = CommonFunctions.setParams(
+		// AppPreferences.ServerVariables.SCHEME,
+		// AppPreferences.ServerVariables.AUTHORITY, values);
+		// new GetLocationOfPeers().execute(params);
 
 	}
 
@@ -344,50 +383,56 @@ public class MainActivity extends FragmentActivity implements
 	public void onConnectionSuspended(int arg0) {
 	}
 
-	// asnyc tasks
-	public class GetLocationOfPeers extends
-			AsyncTask<RequestParams, Void, String> {
-		ProgressDialog dialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(MainActivity.this);
-			dialog.setMessage("Please wait while we look for people near you");
-			dialog.show();
-		}
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			// return null;
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			dialog.dismiss();
-			Log.d(TAG, "in onPostExecuted");
-			Log.d(TAG, result);
-			ArrayList<LocationDetailsModel> locations = new MyJSONParser()
-					.parseLocation(result);
-			if (locations.size() == 0) {
-				Toast.makeText(MainActivity.this, "no one is near you",
-						Toast.LENGTH_SHORT).show();
-			} else {
-				for (int i = 0; i < locations.size(); i++) {
-					mMap.addMarker(new MarkerOptions()
-							.position(
-									new LatLng(locations.get(i).getLatitude(),
-											locations.get(i).getLongitude()))
-							.title("friend")
-							.icon(BitmapDescriptorFactory
-									.fromResource(R.drawable.friends)));
-				}
+	public void fillMap(ArrayList<LocationDetailsModel> locations) {
+		if (locations.size() == 0) {
+			Toast.makeText(MainActivity.this, "no one is near you",
+					Toast.LENGTH_SHORT).show();
+		} else {
+			for (int i = 0; i < locations.size(); i++) {
+				Marker marker = mMap.addMarker(new MarkerOptions()
+						.position(
+								new LatLng(locations.get(i).getLatitude(),
+										locations.get(i).getLongitude()))
+						.title("friend")
+						.icon(BitmapDescriptorFactory
+								.fromResource(R.drawable.friends)));
+				markers.add(marker);
 			}
-
 		}
 
 	}
+
+	// // asnyc tasks
+	// public class GetLocationOfPeers extends
+	// AsyncTask<RequestParams, Void, String> {
+	// ProgressDialog dialog;
+	//
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// dialog = new ProgressDialog(MainActivity.this);
+	// dialog.setMessage("Please wait while we look for people near you");
+	// dialog.show();
+	// }
+	//
+	// @Override
+	// protected String doInBackground(RequestParams... params) {
+	// // return null;
+	// return new HttpManager().sendUserData(params[0]);
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(String result) {
+	// dialog.dismiss();
+	// Log.d(TAG, "in onPostExecuted");
+	// Log.d(TAG, result);
+	// ArrayList<LocationDetailsModel> locations = new MyJSONParser()
+	// .parseLocation(result);
+	// fillMap(locations);
+	//
+	// }
+	//
+	// }
 
 	public class SendGCMInfoAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
