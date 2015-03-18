@@ -1,5 +1,9 @@
 package com.example.clickforhelp.controllers;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.example.clickforhelp.R;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
@@ -9,8 +13,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 public class GcmIntentService extends IntentService {
@@ -50,20 +54,10 @@ public class GcmIntentService extends IntentService {
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE
 					.equals(messageType)) {
-				// This loop represents the service doing some work.
-				for (int i = 0; i < 5; i++) {
-					Log.i(TAG,
-							"Working... " + (i + 1) + "/5 @ "
-									+ SystemClock.elapsedRealtime());
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-					}
-				}
-				Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
-				// Post notification of received message.
-				sendNotification("Received: " + extras.toString());
+
+				sendNotification(extras.getString("message"));
 				Log.i(TAG, "Received: " + extras.toString());
+				Log.d(TAG, extras.getString("message"));
 			}
 		}
 		// Release the wake lock provided by the WakefulBroadcastReceiver.
@@ -71,24 +65,37 @@ public class GcmIntentService extends IntentService {
 
 	}
 
-	// Put the message into a notification and post it.
-	// This is just one simple example of what you might choose to do with
-	// a GCM message.
 	private void sendNotification(String msg) {
-		mNotificationManager = (NotificationManager) this
-				.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, MainActivity.class), 0);
-
+		// Creates an Intent for the Activity
+		Intent intent = new Intent(this, MainActivity.class);
+		JSONArray array;
+		try {
+			array = new JSONArray(msg);
+			JSONObject obj = array.getJSONObject(0);
+			intent.putExtra("coord", new double[] { obj.getDouble("latitude"),
+					obj.getDouble("longitude") });
+			Log.d(TAG,
+					" " + obj.getDouble("latitude") + " "
+							+ obj.getDouble("longitude"));
+			intent.putExtra("userid", obj.getString("userid"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// Sets the Activity to start in a new, empty task
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		// Creates the PendingIntent
+		PendingIntent notifyPendingIntent = PendingIntent.getActivity(this, 0,
+				intent, PendingIntent.FLAG_CANCEL_CURRENT);
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				this).setSmallIcon(R.drawable.ic_launcher)
-				.setContentTitle("GCM Notification")
-				.setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
-				.setContentText(msg);
+				.setContentTitle("Alert")
+				.setContentText("some one near you needs help");
+		mBuilder.setContentIntent(notifyPendingIntent);
+		NotificationManager mNotificationManagerCompat = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		mNotificationManagerCompat.notify(1, mBuilder.build());
 
-		mBuilder.setContentIntent(contentIntent);
-		mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
 	}
 
 }

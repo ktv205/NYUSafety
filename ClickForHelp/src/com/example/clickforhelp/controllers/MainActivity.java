@@ -23,8 +23,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -78,6 +76,7 @@ public class MainActivity extends FragmentActivity implements
 	String regid;
 	AlarmManager alarmManager;
 	PendingIntent pendingIntent;
+	Button helpButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -94,33 +93,49 @@ public class MainActivity extends FragmentActivity implements
 			intentFilter = new IntentFilter(
 					"com.example.clickforhelp.action_send");
 			intentFilter.addCategory("com.example.clickforhelp");
-
 			// markers
 			markers = new ArrayList<Marker>();
-
-			// setting loction alaram
-			setLocationSendingAlarm();
 
 		}
 	}
 
-	private void setLocationSendingAlarm() {
-
+	private void setLocationReceivingAlarm() {
+		Log.d(TAG, "setLocationReceivingAlaram");
 		alarmManager = (AlarmManager) getApplicationContext().getSystemService(
 				Context.ALARM_SERVICE);
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
-		pendingIntent = PendingIntent.getService(this, 0, intent, 0);
+		if (getIntent() != null) {
+			if (getIntent().hasExtra("coord")) {
+				Log.d(TAG, "has coord");
+				helpButton.setText("Helping a friend(click here after done)");
+				intent.putExtra("coord",
+						getIntent().getDoubleArrayExtra("coord"));
+				intent.putExtra("userid",
+						getIntent().getExtras().getString("userid"));
+
+			} else {
+				Log.d(TAG, "no coord");
+			}
+		}
+		pendingIntent = PendingIntent.getService(this, 0, intent,
+				PendingIntent.FLAG_CANCEL_CURRENT);
 		try {
 			alarmManager.cancel(pendingIntent);
 		} catch (Exception e) {
-
+			Log.d(TAG, "exception");
 		}
 		int timeForAlarm = 6000;
 
 		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
 				System.currentTimeMillis() + timeForAlarm, timeForAlarm,
 				pendingIntent);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		Log.d(TAG, "in new intent");
 	}
 
 	public boolean checkPluggedIn() {
@@ -177,26 +192,37 @@ public class MainActivity extends FragmentActivity implements
 		this.registerReceiver(mReceiver, intentFilter);
 
 		// help button and accessing AskHelpAsyncTask
-		Button helpButton = (Button) findViewById(R.id.button_help);
+		helpButton = (Button) findViewById(R.id.button_help);
 		helpButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
-				String[] values = {
-						"public",
-						"index.php",
-						"askhelp",
-						getSharedPreferences(AppPreferences.SharedPref.name,
-								MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.user_email, "") };
-				RequestParams params = CommonFunctions.setParams(
-						AppPreferences.ServerVariables.SCHEME,
-						AppPreferences.ServerVariables.AUTHORITY, values);
-				new AskHelpAsyncTask().execute(params);
+				if (helpButton.getText().toString().equals("Ask For Help")) {
+					Log.d(TAG, "Ask For Help");
+					String[] values = {
+							"public",
+							"index.php",
+							"askhelp",
+							getSharedPreferences(
+									AppPreferences.SharedPref.name,
+									MODE_PRIVATE).getString(
+									AppPreferences.SharedPref.user_email, "") };
+					RequestParams params = CommonFunctions.setParams(
+							AppPreferences.ServerVariables.SCHEME,
+							AppPreferences.ServerVariables.AUTHORITY, values);
+					new AskHelpAsyncTask().execute(params);
+					helpButton.setText("Asked for help(click here when done)");
+				} else {
+					Log.d(TAG, "setting text back");
+					helpButton.setText("Ask For Help");
+					getIntent().setData(null);
+					setIntent(null);
+					alarmManager.cancel(pendingIntent);
+					setLocationReceivingAlarm();
+				}
 
 			}
+
 		});
-		setLocationSendingAlarm();
 
 		SharedPreferences pref = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -247,12 +273,16 @@ public class MainActivity extends FragmentActivity implements
 
 		}
 
+		// setting loction alaram
+		setLocationReceivingAlarm();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		this.unregisterReceiver(mReceiver);
+		alarmManager.cancel(pendingIntent);
+		Log.d(TAG, "alarm cancelled");
 
 	}
 
@@ -260,12 +290,13 @@ public class MainActivity extends FragmentActivity implements
 	protected void onStop() {
 		super.onStop();
 		mGoogleApiClient.disconnect();
-		alarmManager.cancel(pendingIntent);
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+
+		// alarmManager.cancel(pendingIntent);
 
 	}
 
@@ -442,18 +473,6 @@ public class MainActivity extends FragmentActivity implements
 		} else {
 			Log.d(TAG, "mLastLocation is null");
 		}
-		// // Getting location details from server
-		// String[] values = {
-		// "public",
-		// "index.php",
-		// "home",
-		// getSharedPreferences(AppPreferences.SharedPref.name,
-		// MODE_PRIVATE).getString(
-		// AppPreferences.SharedPref.user_email, "") };
-		// RequestParams params = CommonFunctions.setParams(
-		// AppPreferences.ServerVariables.SCHEME,
-		// AppPreferences.ServerVariables.AUTHORITY, values);
-		// new GetLocationOfPeers().execute(params);
 
 	}
 
@@ -480,38 +499,6 @@ public class MainActivity extends FragmentActivity implements
 
 	}
 
-	// // asnyc tasks
-	// public class GetLocationOfPeers extends
-	// AsyncTask<RequestParams, Void, String> {
-	// ProgressDialog dialog;
-	//
-	// @Override
-	// protected void onPreExecute() {
-	// super.onPreExecute();
-	// dialog = new ProgressDialog(MainActivity.this);
-	// dialog.setMessage("Please wait while we look for people near you");
-	// dialog.show();
-	// }
-	//
-	// @Override
-	// protected String doInBackground(RequestParams... params) {
-	// // return null;
-	// return new HttpManager().sendUserData(params[0]);
-	// }
-	//
-	// @Override
-	// protected void onPostExecute(String result) {
-	// dialog.dismiss();
-	// Log.d(TAG, "in onPostExecuted");
-	// Log.d(TAG, result);
-	// ArrayList<LocationDetailsModel> locations = new MyJSONParser()
-	// .parseLocation(result);
-	// fillMap(locations);
-	//
-	// }
-	//
-	// }
-
 	public class SendGCMInfoAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
 
@@ -537,6 +524,11 @@ public class MainActivity extends FragmentActivity implements
 			return new HttpManager().sendUserData(params[0]);
 		}
 
+	}
+
+	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
 	}
 
 }

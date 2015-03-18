@@ -27,13 +27,8 @@ public class LocationUpdateService extends Service implements
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand");
-		if (intent.hasExtra("stop")) {
-			Log.d(TAG, "stop");
-			stopSelf();
-		} else {
-			buildGoogleApiClient();
-		}
 
+		buildGoogleApiClient();
 		return START_STICKY;
 	}
 
@@ -88,7 +83,7 @@ public class LocationUpdateService extends Service implements
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG,"destroyed");
+		Log.d(TAG, "destroyed");
 		mGoogleApiClient.disconnect();
 	}
 

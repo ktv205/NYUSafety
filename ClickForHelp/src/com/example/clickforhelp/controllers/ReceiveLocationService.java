@@ -23,19 +23,43 @@ public class ReceiveLocationService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		   Log.d(TAG,"in onStart Command");
-			String[] values = {
-					"public",
-					"index.php",
-					"home",
-					getSharedPreferences(AppPreferences.SharedPref.name,
-							MODE_PRIVATE).getString(
-							AppPreferences.SharedPref.user_email, "") };
-			RequestParams params = CommonFunctions.setParams(
-					AppPreferences.ServerVariables.SCHEME,
-					AppPreferences.ServerVariables.AUTHORITY, values);
-			new GetLocationOfPeers().execute(params);
-		return START_STICKY;
+		Log.d(TAG, "in onStart Command");
+		if (intent != null) {
+			if (intent.hasExtra("coord")) {
+				Log.d(TAG,
+						"coordinates in if"
+								+ String.valueOf(intent.getExtras()
+										.getDoubleArray("coord")[0]));
+				Log.d(TAG, "helping");
+				String[] values = {
+						"public",
+						"index.php",
+						"trackuser",
+						getSharedPreferences(AppPreferences.SharedPref.name,
+								MODE_PRIVATE).getString(
+								AppPreferences.SharedPref.user_email, ""),
+						intent.getExtras().getString("userid") };
+				Log.d(TAG, "in if" + intent.getExtras().getString("userid"));
+				RequestParams params = CommonFunctions.setParams(
+						AppPreferences.ServerVariables.SCHEME,
+						AppPreferences.ServerVariables.AUTHORITY, values);
+				new GetLocationOfPeers().execute(params);
+			} else {
+
+				String[] values = {
+						"public",
+						"index.php",
+						"home",
+						getSharedPreferences(AppPreferences.SharedPref.name,
+								MODE_PRIVATE).getString(
+								AppPreferences.SharedPref.user_email, "") };
+				RequestParams params = CommonFunctions.setParams(
+						AppPreferences.ServerVariables.SCHEME,
+						AppPreferences.ServerVariables.AUTHORITY, values);
+				new GetLocationOfPeers().execute(params);
+			}
+		}
+		return START_NOT_STICKY;
 
 	}
 
@@ -51,8 +75,8 @@ public class ReceiveLocationService extends Service {
 
 		@Override
 		protected void onPostExecute(String result) {
-			Log.d(TAG, "in onPostExecuted");
-			Log.d(TAG, result);
+			// Log.d(TAG, "in onPostExecuted");
+			// Log.d(TAG, result);
 			ArrayList<LocationDetailsModel> locations = new MyJSONParser()
 					.parseLocation(result);
 			Intent intent = new Intent("com.example.clickforhelp.action_send");
