@@ -23,6 +23,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -34,7 +36,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -49,8 +53,8 @@ public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
 	private final static String TAG = "MainActivity";
-	private ArrayList<Marker> markers;
 
+	private ArrayList<Marker> markers;
 	private Context context;
 
 	private MapFragment mapFragment;
@@ -66,7 +70,6 @@ public class MainActivity extends FragmentActivity implements
 	private IntentFilter intentFilter;
 	private BroadcastReceiver mReceiver;
 	private Intent sendLocationIntentService;
-	private Intent receiveLocationIntentService;
 
 	String SENDER_ID = "947264921784";
 	TextView mDisplay;
@@ -84,16 +87,7 @@ public class MainActivity extends FragmentActivity implements
 		context = getApplicationContext();
 		if (CommonFunctions.isConnected(context)) {
 
-			// starting a service to send location updates to server
-			sendLocationIntentService = new Intent(this,
-					LocationUpdateService.class);
-			startService(sendLocationIntentService);
-
-			// starting a service and receiving locations
-			// receiveLocationIntentService = new Intent(this,
-			// ReceiveLocationService.class);
-			// startService(receiveLocationIntentService);
-
+			// GCM
 			gcmServiceImplementation();
 
 			// location broadcast receiver
@@ -101,7 +95,12 @@ public class MainActivity extends FragmentActivity implements
 					"com.example.clickforhelp.action_send");
 			intentFilter.addCategory("com.example.clickforhelp");
 
+			// markers
 			markers = new ArrayList<Marker>();
+
+			// setting loction alaram
+			setLocationSendingAlarm();
+
 		}
 	}
 
@@ -111,8 +110,7 @@ public class MainActivity extends FragmentActivity implements
 				Context.ALARM_SERVICE);
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
-		intent.putExtra("locationSendingAlarm", true);
-		pendingIntent = PendingIntent.getService(this, 987654321, intent, 0);
+		pendingIntent = PendingIntent.getService(this, 0, intent, 0);
 		try {
 			alarmManager.cancel(pendingIntent);
 		} catch (Exception e) {
@@ -123,6 +121,36 @@ public class MainActivity extends FragmentActivity implements
 		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
 				System.currentTimeMillis() + timeForAlarm, timeForAlarm,
 				pendingIntent);
+	}
+
+	public boolean checkPluggedIn() {
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = context.registerReceiver(null, ifilter);
+		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+		Log.d(TAG, "battery_status->" + status);
+		boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+		if (isCharging) {
+			Log.d(TAG, "is cherging?->" + String.valueOf(isCharging));
+			int chargePlug = batteryStatus.getIntExtra(
+					BatteryManager.EXTRA_PLUGGED, -1);
+			isCharging = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+		} else {
+			isCharging = status == BatteryManager.BATTERY_STATUS_FULL;
+		}
+
+		return isCharging;
+	}
+
+	public boolean checkChargingLevel() {
+		boolean level = false;
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = context.registerReceiver(null, ifilter);
+		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
+		if (status == BatteryManager.BATTERY_HEALTH_GOOD) {
+			level = true;
+		}
+		return level;
+
 	}
 
 	@Override
@@ -169,6 +197,56 @@ public class MainActivity extends FragmentActivity implements
 			}
 		});
 		setLocationSendingAlarm();
+
+		SharedPreferences pref = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		int value = Integer.valueOf(pref.getString(
+				getString(R.string.string_key_location_settings), "-1"));
+		sendLocationIntentService = new Intent(this,
+				LocationUpdateService.class);
+		if (new CommonFunctions().isMyServiceRunning(
+				LocationUpdateService.class, this)) {
+
+		} else {
+
+			startService(sendLocationIntentService);
+		}
+
+		// starting a service to send location updates to server
+		if (value == 4) {
+			Log.d(TAG, "value is 4");
+			if (new CommonFunctions().isMyServiceRunning(
+					LocationUpdateService.class, this)) {
+				sendLocationIntentService.putExtra("stop", true);
+				this.stopService(sendLocationIntentService);
+			} else {
+
+			}
+
+		} else if (value == 3) {
+			if (checkPluggedIn()) {
+
+			} else {
+				if (new CommonFunctions().isMyServiceRunning(
+						LocationUpdateService.class, this)) {
+					stopService(sendLocationIntentService);
+				} else {
+
+				}
+
+			}
+
+		} else if (value == 2) {
+			if (new CommonFunctions().isMyServiceRunning(
+					LocationUpdateService.class, this)) {
+				stopService(sendLocationIntentService);
+			} else {
+
+			}
+		} else {
+
+		}
+
 	}
 
 	@Override

@@ -23,10 +23,16 @@ public class LocationUpdateService extends Service implements
 	private static final String TAG = "LocationUpdateService";
 	private GoogleApiClient mGoogleApiClient;
 	private LocationRequest mLocationRequest;
+	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand");
-		buildGoogleApiClient();
+		if (intent.hasExtra("stop")) {
+			Log.d(TAG, "stop");
+			stopSelf();
+		} else {
+			buildGoogleApiClient();
+		}
 
 		return START_STICKY;
 	}
@@ -80,6 +86,13 @@ public class LocationUpdateService extends Service implements
 	}
 
 	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG,"destroyed");
+		mGoogleApiClient.disconnect();
+	}
+
+	@Override
 	public void onLocationChanged(Location arg0) {
 		Log.d(TAG, "in onLocationChanged");
 		String[] locationValues = {
@@ -114,7 +127,7 @@ public class LocationUpdateService extends Service implements
 
 		@Override
 		protected void onPostExecute(String result) {
-			Log.d(TAG,"result->"+result);
+			Log.d(TAG, "result->" + result);
 			super.onPostExecute(result);
 		}
 
