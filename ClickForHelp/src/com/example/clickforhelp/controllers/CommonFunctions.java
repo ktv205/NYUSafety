@@ -12,13 +12,11 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.util.Log;
 
 public class CommonFunctions {
-	private static final String TAG = "CommonFunctions";
+	// private static final String TAG = "CommonFunctions";
 
 	public static boolean isConnected(Context context) {
-		Log.d(TAG, "isConnected");
 		ConnectivityManager manager = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = manager.getActiveNetworkInfo();
@@ -55,23 +53,35 @@ public class CommonFunctions {
 			String key = entry.getKey();
 			String value = entry.getValue();
 			edit.putString(key, value);
-			Log.d(TAG, "key->" + key + "value->" + value);
 		}
 		edit.commit();
 		return true;
 	}
 
-	public boolean isMyServiceRunning(Class<?> serviceClass,Context context) {
-		ActivityManager manager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+	public boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
+		ActivityManager manager = (ActivityManager) context
+				.getSystemService(Context.ACTIVITY_SERVICE);
+		boolean running = false;
 		for (RunningServiceInfo service : manager
 				.getRunningServices(Integer.MAX_VALUE)) {
 			if (serviceClass.getName().equals(service.service.getClassName())) {
-				Log.d(TAG, "service is running");
-				return true;
+				running = true;
 			}
 		}
-		Log.d(TAG, "service is not running");
-		return false;
+		return running;
+	}
+
+	public boolean validNyuEmail(String email) {
+		String[] split = email.split("@");
+		if (split.length > 1) {
+			if (split[1].equals("nyu.edu")) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 }

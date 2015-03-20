@@ -5,22 +5,12 @@ import com.example.clickforhelp.R;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 public class MyPreferencesFragment extends PreferenceFragment implements
 		android.content.SharedPreferences.OnSharedPreferenceChangeListener {
 	private static final String TAG = "MyPreferencesFragment";
-	private static final String[] values = { "send updates all the time",
-			"send updates if the power is 30 percent or more(recommended)",
-			"when plugged in to a power source",
-			"never send location updates(not recommended)" };
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

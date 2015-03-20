@@ -29,11 +29,8 @@ public class AuthenticationActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
-		Log.d(TAG, "in onCreate");
-		int id = R.drawable.common_full_open_on_phone;
 		ActionBar bar = getActionBar();
 		bar.setIcon(R.drawable.nyu_white);
-		Log.d(TAG, "drawable id->" + id);
 		if (!getSharedPreferences(AppPreferences.SharedPref.name, MODE_PRIVATE)
 				.getString(AppPreferences.SharedPref.user_email, "").isEmpty()
 				&& getSharedPreferences(AppPreferences.SharedPref.name,
@@ -42,15 +39,6 @@ public class AuthenticationActivity extends Activity implements
 			startActivity(new Intent(this, MainActivity.class));
 			finish();
 		}
-		Log.d(TAG,
-				"email and flag->"
-						+ getSharedPreferences(AppPreferences.SharedPref.name,
-								MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.user_email, "")
-						+ "flag->"
-						+ getSharedPreferences(AppPreferences.SharedPref.name,
-								MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.flag, ""));
 		fragmentManager = getFragmentManager();
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = getFragmentManager().findFragmentByTag(WELCOMETAG);
@@ -69,43 +57,35 @@ public class AuthenticationActivity extends Activity implements
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.d(TAG, "onStart");
 	}
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
-		Log.d(TAG, "onRestoreInstanceState");
-
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d(TAG, "inOnResume");
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		Log.d(TAG, "onSavedInstance");
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d(TAG, "onPause");
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Log.d(TAG, "onStop");
 	}
 
 	@Override
 	public void onClickAuthButton(int flag) {
-		Log.d(TAG, "in onClickAuthButton->" + flag);
 		fragmentTransaction = fragmentManager.beginTransaction();
 		if (flag == AppPreferences.Flags.LOGIN_FLAG) {
 
@@ -134,14 +114,11 @@ public class AuthenticationActivity extends Activity implements
 
 	@Override
 	public void onBackPressed() {
-		Log.d(TAG, "onBackPressed");
-		Log.d(TAG, "backstack->" + fragmentManager.getBackStackEntryCount());
 		Fragment loginFragment = fragmentManager.findFragmentByTag(LOGINTAG);
 		Fragment signupFragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
 		Fragment verfiyFragment = fragmentManager.findFragmentByTag(VERIFYTAG);
 		if ((loginFragment != null && loginFragment.isVisible())
 				|| (signupFragment != null && signupFragment.isVisible())) {
-			Log.d(TAG, "onbackstack login fragment");
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(WELCOMETAG);
 			if (fragment != null) {
@@ -152,21 +129,17 @@ public class AuthenticationActivity extends Activity implements
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
 		} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
-			Log.d(TAG, "verify fragment backstack");
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
 			if (fragment != null) {
-				Log.d(TAG, "fragment is not null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, SIGNUPTAG).commit();
 			} else {
-				Log.d(TAG, "fragment is null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new SignupFragment(), SIGNUPTAG).commit();
 			}
 
 		} else {
-			Log.d(TAG, "welcome fragment backstack");
 			super.onBackPressed();
 		}
 
@@ -174,16 +147,13 @@ public class AuthenticationActivity extends Activity implements
 
 	@Override
 	public void switchToLogin(int flag) {
-		Log.d(TAG, "switchToLogin");
 		if (flag == 1) {
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(LOGINTAG);
 			if (fragment != null) {
-				Log.d(TAG, "fragment is not null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, LOGINTAG).commit();
 			} else {
-				Log.d(TAG, "fragment is null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new LoginFragment(), LOGINTAG).commit();
 			}
@@ -191,11 +161,9 @@ public class AuthenticationActivity extends Activity implements
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = fragmentManager.findFragmentByTag(VERIFYTAG);
 			if (fragment != null) {
-				Log.d(TAG, "fragment is not null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, VERIFYTAG).commit();
 			} else {
-				Log.d(TAG, "fragment is null verify");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new EmailVerificationFragment(), VERIFYTAG).commit();
 			}
@@ -207,11 +175,9 @@ public class AuthenticationActivity extends Activity implements
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
 		if (fragment != null) {
-			Log.d(TAG, "fragment is not null");
 			fragmentTransaction.replace(R.id.authentication_parent0_linear,
 					fragment, SIGNUPTAG).commit();
 		} else {
-			Log.d(TAG, "fragment is null");
 			fragmentTransaction.replace(R.id.authentication_parent0_linear,
 					new SignupFragment(), SIGNUPTAG).commit();
 		}

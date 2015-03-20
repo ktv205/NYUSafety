@@ -24,7 +24,9 @@ public class MyJSONParser {
 				LocationDetailsModel myModel = new LocationDetailsModel();
 				myModel.setLatitude(obj.getDouble(LAT));
 				myModel.setLongitude(obj.getDouble(LNG));
-				myModel.setUser_email(obj.getString(EMAIL));
+				if (obj.has(EMAIL)) {
+					myModel.setUser_email(obj.getString(EMAIL));
+				}
 				locationArrayList.add(myModel);
 			}
 			return locationArrayList;

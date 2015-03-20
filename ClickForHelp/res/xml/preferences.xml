@@ -8,5 +8,4 @@
         android:entryValues="@array/locationupdateValues"
         android:key="@string/string_key_location_settings"
         android:title="@string/string_location_settings" />
-
-</PreferenceScreen>
+</PreferenceScreen>

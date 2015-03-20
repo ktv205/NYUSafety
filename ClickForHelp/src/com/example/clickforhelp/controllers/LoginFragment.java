@@ -14,7 +14,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginFragment extends Fragment {
-	private final String TAG = "LoginFragment";
+	//private final String TAG = "LoginFragment";
 	private View view;
 	private String email, password;
 	private final static int EMAIL_EMPTY = 1;
@@ -38,10 +37,7 @@ public class LoginFragment extends Fragment {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-
-		Log.d(TAG, "in onAttach");
 		try {
-			Log.d("connected", "in onAttach");
 			loginInterface = (LoginInterface) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
@@ -53,7 +49,6 @@ public class LoginFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		view = inflater.inflate(R.layout.fragment_login, container, false);
-		Log.d(TAG, "in onCreateView");
 		return view;
 	}
 
@@ -76,6 +71,18 @@ public class LoginFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				loginInterface.switchToSignup();
+
+			}
+		});
+		TextView forgotText = (TextView) view
+				.findViewById(R.id.login_text_forgot);
+		forgotText.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(),
+						ForgotPasswordActivity.class);
+				getActivity().startActivity(intent);
 
 			}
 		});
@@ -140,7 +147,6 @@ public class LoginFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// return null;
 			return new HttpManager().sendUserData(params[0]);
 		}
 

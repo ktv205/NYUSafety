@@ -12,7 +12,6 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,7 +23,7 @@ import android.widget.Toast;
 
 public class SignupFragment extends Fragment {
 	private View view;
-	private final String TAG = "SignupFragment";
+	// private final String TAG = "SignupFragment";
 	private final static int NAME_EMPTY = 0;
 	private final static int EMAIL_EMPTY = 1;
 	private final static int PASSWORD_EMPTY = 2;
@@ -41,9 +40,7 @@ public class SignupFragment extends Fragment {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		Log.d(TAG, "in onAttach");
 		try {
-			Log.d("connected", "in onAttach");
 			signupInterface = (SignupInterface) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
@@ -61,7 +58,6 @@ public class SignupFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		view = inflater.inflate(R.layout.fragment_signup, container, false);
-		Log.d(TAG, "in onCreateView");
 		return view;
 	}
 
@@ -164,7 +160,7 @@ public class SignupFragment extends Fragment {
 			return RETYPE_EMPTY;
 		} else if (!password.equals(reType)) {
 			return DONT_MATCH;
-		} else if (!validNyuEmail(email)) {
+		} else if (!new CommonFunctions().validNyuEmail(email)) {
 			return INVALID_EMAIL;
 		} else if (phone.isEmpty() || phone.length() > 10
 				|| phone.length() < 10) {
@@ -176,25 +172,11 @@ public class SignupFragment extends Fragment {
 		}
 	}
 
-	public boolean validNyuEmail(String email) {
-		String[] split = email.split("@");
-		if (split.length > 1) {
-			if (split[1].equals("nyu.edu")) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
-
 	public class SendSignupDetailsAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// return null;
 			return new HttpManager().sendUserData(params[0]);
 		}
 
@@ -202,7 +184,6 @@ public class SignupFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			if (result != null) {
-				Log.d(TAG, "result is not null->" + result);
 				if (result.contains("1")) {
 					signupInterface.switchToLogin(2);
 				} else {
@@ -211,7 +192,6 @@ public class SignupFragment extends Fragment {
 							Toast.LENGTH_SHORT).show();
 				}
 			} else {
-				Log.d(TAG, "result is null");
 				Toast.makeText(getActivity(),
 						"something went wrong please signup again",
 						Toast.LENGTH_SHORT).show();

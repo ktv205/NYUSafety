@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class EmailVerificationFragment extends Fragment {
-	private final static String TAG = "EmailVerificationFragment";
+	// private final static String TAG = "EmailVerificationFragment";
 	private final static int CODE_EMPTY = 0;
 	private final static int RESULT_OK = 1;
 	private String code;
@@ -112,8 +111,7 @@ public class EmailVerificationFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return "1";
-			// return new HttpManager().sendUserData(params[0]);
+			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
@@ -128,7 +126,7 @@ public class EmailVerificationFragment extends Fragment {
 				getActivity().startActivity(intent);
 				getActivity().finish();
 			} else {
-				Toast.makeText(getActivity(), "code miss match",
+				Toast.makeText(getActivity(), "entered code is wrong",
 						Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -153,7 +151,6 @@ public class EmailVerificationFragment extends Fragment {
 				Toast.makeText(getActivity(), "please try again",
 						Toast.LENGTH_SHORT).show();
 			}
-			Log.d(TAG, "result in Request Verification code->" + result);
 		}
 
 	}

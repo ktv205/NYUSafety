@@ -16,30 +16,25 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 public class LocationUpdateService extends Service implements
 		OnConnectionFailedListener, ConnectionCallbacks, LocationListener {
-	private static final String TAG = "LocationUpdateService";
+	// private static final String TAG = "LocationUpdateService";
 	private GoogleApiClient mGoogleApiClient;
 	private LocationRequest mLocationRequest;
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(TAG, "onStartCommand");
-
 		buildGoogleApiClient();
 		return START_STICKY;
 	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		Log.d(TAG, "in onBind");
 		return null;
 	}
 
 	protected synchronized void buildGoogleApiClient() {
-		Log.d(TAG, "in buildGoogleApiClient");
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
@@ -57,39 +52,33 @@ public class LocationUpdateService extends Service implements
 
 	@Override
 	public void onConnected(Bundle arg0) {
-		Log.d(TAG, "in onConnected");
 		startLocationUpdates();
 
 	}
 
 	protected void startLocationUpdates() {
-		Log.d(TAG, "in startLocationUpdates");
 		LocationServices.FusedLocationApi.requestLocationUpdates(
 				mGoogleApiClient, mLocationRequest, this);
 	}
 
 	@Override
 	public void onConnectionSuspended(int arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onConnectionFailed(ConnectionResult arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG, "destroyed");
 		mGoogleApiClient.disconnect();
 	}
 
 	@Override
 	public void onLocationChanged(Location arg0) {
-		Log.d(TAG, "in onLocationChanged");
 		String[] locationValues = {
 				"public",
 				"index.php",
@@ -111,18 +100,15 @@ public class LocationUpdateService extends Service implements
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			Log.d(TAG, "onPreExecute");
 		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// return null;
 			return new HttpManager().sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
-			Log.d(TAG, "result->" + result);
 			super.onPostExecute(result);
 		}
 

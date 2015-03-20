@@ -6,7 +6,6 @@ import com.example.clickforhelp.models.AppPreferences;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,7 +15,6 @@ import android.widget.TextView;
 
 public class WelcomeFragment extends Fragment {
 	private View view;
-	private final String TAG = "WelcomeFragment";
 	private OnClickAuthentication auth;
 
 	public interface OnClickAuthentication {
@@ -26,9 +24,7 @@ public class WelcomeFragment extends Fragment {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		Log.d(TAG, "in onAttach");
 		try {
-			Log.d("connected", "in onAttach");
 			auth = (OnClickAuthentication) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
@@ -40,7 +36,6 @@ public class WelcomeFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		view = inflater.inflate(R.layout.fragment_welcome, container, false);
-		Log.d(TAG, "in onCreateView");
 		return view;
 	}
 
@@ -57,7 +52,7 @@ public class WelcomeFragment extends Fragment {
 				.findViewById(R.id.welcome_button_signup);
 		TextView loginTextView = (TextView) view
 				.findViewById(R.id.welcome_text_login);
-		
+
 		signupButton.setOnClickListener(new OnClickListener() {
 
 			@Override

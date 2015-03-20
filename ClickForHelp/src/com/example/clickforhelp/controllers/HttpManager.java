@@ -9,23 +9,17 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-import android.util.Log;
-
 import com.example.clickforhelp.models.RequestParams;
 
 //import org.apache.http.impl.client.DefaultHttpClient;
 
 public class HttpManager {
-	private final static String TAG = "HttpManager";
-
-	// private final static DefaultHttpClient httpClient = new
-	// DefaultHttpClient();
+	// private final static String TAG = "HttpManager";
 	public String sendUserData(RequestParams params) {
 		URL url = null;
 		try {
 			if (params.getMethod() == "GET") {
 				url = new URL(params.getURI());
-				Log.d(TAG, params.getURI());
 			} else {
 				url = new URL(params.getURI());
 			}
@@ -45,7 +39,6 @@ public class HttpManager {
 		}
 
 		if (params.getMethod() == "POST") {
-			Log.d(TAG, "post->" + params.getURI() + params.getEncodedParams());
 			OutputStreamWriter writer = null;
 			try {
 				writer = new OutputStreamWriter(con.getOutputStream());
@@ -65,7 +58,6 @@ public class HttpManager {
 		}
 
 		BufferedReader reader = null;
-		Log.d(TAG, "after the buffer reader");
 		StringBuilder sb = new StringBuilder();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
@@ -82,8 +74,6 @@ public class HttpManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		Log.d(TAG, "after the open connection");
-		Log.d(TAG, sb.toString());
 		return sb.toString();
 
 	}

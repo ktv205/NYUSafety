@@ -8,21 +8,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.widget.Toast;
 
 public class PowerConnectionReceiver extends BroadcastReceiver {
 
-	private static final String TAG = "PowerConnectionReceiver";
+	// private static final String TAG = "PowerConnectionReceiver";
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.d(TAG, "charging broadcast receiver");
-		int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-		boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-				|| status == BatteryManager.BATTERY_STATUS_FULL;
+		Toast.makeText(context, "in checking if connected to a charger",
+				Toast.LENGTH_LONG).show();
 
 		int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-		boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
 		boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 
 		SharedPreferences pref = PreferenceManager
@@ -40,6 +37,13 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
 				} else {
 					context.startService(new Intent(context,
 							LocationUpdateService.class));
+				}
+			} else {
+				if (new CommonFunctions().isMyServiceRunning(
+						LocationUpdateService.class, context)) {
+					context.stopService(new Intent(context,
+							LocationUpdateService.class));
+
 				}
 			}
 

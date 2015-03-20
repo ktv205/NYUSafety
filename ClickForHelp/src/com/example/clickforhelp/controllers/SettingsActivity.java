@@ -2,16 +2,12 @@ package com.example.clickforhelp.controllers;
 
 import com.example.clickforhelp.R;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity implements
 		OnPreferenceChangeListener {

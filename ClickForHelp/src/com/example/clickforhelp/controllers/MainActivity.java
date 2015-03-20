@@ -38,7 +38,6 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,7 +49,7 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
-	private final static String TAG = "MainActivity";
+	// private final static String TAG = "MainActivity";
 
 	private ArrayList<Marker> markers;
 	private Context context;
@@ -93,21 +92,135 @@ public class MainActivity extends FragmentActivity implements
 			intentFilter = new IntentFilter(
 					"com.example.clickforhelp.action_send");
 			intentFilter.addCategory("com.example.clickforhelp");
+
 			// markers
 			markers = new ArrayList<Marker>();
 
 		}
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		// intent for starting location update service
+		sendLocationIntentService = new Intent(this,
+				LocationUpdateService.class);
+
+		if (new CommonFunctions().isMyServiceRunning(
+				LocationUpdateService.class, this)) {
+
+		} else {
+
+			startService(sendLocationIntentService);
+		}
+
+		// map stuff
+		initializeMapFields();
+
+		// anonymous broadcastReceiver for the location of friends
+		mReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				if (markers.size() != 0) {
+					for (int i = 0; i < markers.size(); i++) {
+						markers.get(i).remove();
+					}
+				}
+				// Toast.makeText(MainActivity.this, "received",
+				// Toast.LENGTH_SHORT).show();
+				ArrayList<LocationDetailsModel> locations = intent
+						.getParcelableArrayListExtra("key");
+				fillMap(locations);
+			}
+		};
+		this.registerReceiver(mReceiver, intentFilter);
+
+		// help button and accessing AskHelpAsyncTask
+		helpButton = (Button) findViewById(R.id.button_help);
+		helpButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (helpButton.getText().toString().equals("Ask For Help")) {
+					String[] values = {
+							"public",
+							"index.php",
+							"askhelp",
+							getSharedPreferences(
+									AppPreferences.SharedPref.name,
+									MODE_PRIVATE).getString(
+									AppPreferences.SharedPref.user_email, "") };
+					RequestParams params = CommonFunctions.setParams(
+							AppPreferences.ServerVariables.SCHEME,
+							AppPreferences.ServerVariables.AUTHORITY, values);
+					new AskHelpAsyncTask().execute(params);
+					helpButton.setText("Asked for help(click here when done)");
+				} else {
+					helpButton.setText("Ask For Help");
+					if (getIntent() != null) {
+						getIntent().setData(null);
+						setIntent(null);
+					}
+					alarmManager.cancel(pendingIntent);
+					setLocationReceivingAlarm();
+				}
+
+			}
+
+		});
+
+		// setting location alarm
+		setLocationReceivingAlarm();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		this.unregisterReceiver(mReceiver);
+		
+		alarmManager.cancel(pendingIntent);
+		
+		// checking user preference for location update
+		SharedPreferences pref = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		final int value = Integer.valueOf(pref.getString(
+				getString(R.string.string_key_location_settings), "-1"));
+		// starting a service to send location updates to server
+		settingUserPreferenceLocationUpdates(value);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		mGoogleApiClient.disconnect();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	// Utils
 	private void setLocationReceivingAlarm() {
-		Log.d(TAG, "setLocationReceivingAlaram");
 		alarmManager = (AlarmManager) getApplicationContext().getSystemService(
 				Context.ALARM_SERVICE);
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
 		if (getIntent() != null) {
 			if (getIntent().hasExtra("coord")) {
-				Log.d(TAG, "has coord");
 				helpButton.setText("Helping a friend(click here after done)");
 				intent.putExtra("coord",
 						getIntent().getDoubleArrayExtra("coord"));
@@ -115,7 +228,6 @@ public class MainActivity extends FragmentActivity implements
 						getIntent().getExtras().getString("userid"));
 
 			} else {
-				Log.d(TAG, "no coord");
 			}
 		}
 		pendingIntent = PendingIntent.getService(this, 0, intent,
@@ -123,7 +235,6 @@ public class MainActivity extends FragmentActivity implements
 		try {
 			alarmManager.cancel(pendingIntent);
 		} catch (Exception e) {
-			Log.d(TAG, "exception");
 		}
 		int timeForAlarm = 6000;
 
@@ -132,20 +243,12 @@ public class MainActivity extends FragmentActivity implements
 				pendingIntent);
 	}
 
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-		Log.d(TAG, "in new intent");
-	}
-
 	public boolean checkPluggedIn() {
 		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 		Intent batteryStatus = context.registerReceiver(null, ifilter);
 		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-		Log.d(TAG, "battery_status->" + status);
 		boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
 		if (isCharging) {
-			Log.d(TAG, "is cherging?->" + String.valueOf(isCharging));
 			int chargePlug = batteryStatus.getIntExtra(
 					BatteryManager.EXTRA_PLUGGED, -1);
 			isCharging = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
@@ -168,96 +271,21 @@ public class MainActivity extends FragmentActivity implements
 
 	}
 
-	@Override
-	protected void onResume() {
-		super.onResume();
-		// map stuff
-		initializeMapFields();
-		// anonymous broadcastReceiver
-		mReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (markers.size() != 0) {
-					for (int i = 0; i < markers.size(); i++) {
-						markers.get(i).remove();
-					}
-				}
-				Toast.makeText(MainActivity.this, "received",
-						Toast.LENGTH_SHORT).show();
-				ArrayList<LocationDetailsModel> locations = intent
-						.getParcelableArrayListExtra("key");
-				fillMap(locations);
-			}
-		};
-		this.registerReceiver(mReceiver, intentFilter);
-
-		// help button and accessing AskHelpAsyncTask
-		helpButton = (Button) findViewById(R.id.button_help);
-		helpButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (helpButton.getText().toString().equals("Ask For Help")) {
-					Log.d(TAG, "Ask For Help");
-					String[] values = {
-							"public",
-							"index.php",
-							"askhelp",
-							getSharedPreferences(
-									AppPreferences.SharedPref.name,
-									MODE_PRIVATE).getString(
-									AppPreferences.SharedPref.user_email, "") };
-					RequestParams params = CommonFunctions.setParams(
-							AppPreferences.ServerVariables.SCHEME,
-							AppPreferences.ServerVariables.AUTHORITY, values);
-					new AskHelpAsyncTask().execute(params);
-					helpButton.setText("Asked for help(click here when done)");
-				} else {
-					Log.d(TAG, "setting text back");
-					helpButton.setText("Ask For Help");
-					getIntent().setData(null);
-					setIntent(null);
-					alarmManager.cancel(pendingIntent);
-					setLocationReceivingAlarm();
-				}
-
-			}
-
-		});
-
-		SharedPreferences pref = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		int value = Integer.valueOf(pref.getString(
-				getString(R.string.string_key_location_settings), "-1"));
-		sendLocationIntentService = new Intent(this,
-				LocationUpdateService.class);
-		if (new CommonFunctions().isMyServiceRunning(
-				LocationUpdateService.class, this)) {
-
-		} else {
-
-			startService(sendLocationIntentService);
-		}
-
-		// starting a service to send location updates to server
+	public void settingUserPreferenceLocationUpdates(int value) {
 		if (value == 4) {
-			Log.d(TAG, "value is 4");
 			if (new CommonFunctions().isMyServiceRunning(
 					LocationUpdateService.class, this)) {
-				sendLocationIntentService.putExtra("stop", true);
-				this.stopService(sendLocationIntentService);
+				stopService(sendLocationIntentService);
 			} else {
-
 			}
 
 		} else if (value == 3) {
 			if (checkPluggedIn()) {
-
 			} else {
 				if (new CommonFunctions().isMyServiceRunning(
 						LocationUpdateService.class, this)) {
 					stopService(sendLocationIntentService);
 				} else {
-
 				}
 
 			}
@@ -265,89 +293,48 @@ public class MainActivity extends FragmentActivity implements
 		} else if (value == 2) {
 			if (new CommonFunctions().isMyServiceRunning(
 					LocationUpdateService.class, this)) {
-				stopService(sendLocationIntentService);
-			} else {
+				if (checkChargingLevel()) {
+					// No need to stop the service
+				} else {
+					stopService(sendLocationIntentService);
+				}
 
+			} else {
+				if (checkChargingLevel()) {
+					startService(sendLocationIntentService);
+				} else {
+					// already service started
+				}
 			}
 		} else {
-
+			// already service started
 		}
-
-		// setting loction alaram
-		setLocationReceivingAlarm();
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		this.unregisterReceiver(mReceiver);
-		alarmManager.cancel(pendingIntent);
-		Log.d(TAG, "alarm cancelled");
-
-	}
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		mGoogleApiClient.disconnect();
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-
-		// alarmManager.cancel(pendingIntent);
-
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			Intent intent = new Intent(this, SettingsActivity.class);
-			startActivity(intent);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	// GCM STUFF
 	public void gcmServiceImplementation() {
 		context = getApplicationContext();
-		// Log.d(TAG, "in gcmImp");
 		if (checkPlayServices()) {
-			// Log.d(TAG, "playServices available in gcmImp");
 			gcm = GoogleCloudMessaging.getInstance(this);
 			regid = getRegistrationId(context);
-			// Log.d(TAG, "regId" + regid);
 			if (regid.isEmpty()) {
 				registerInBackground();
 			}
 
 		} else {
-			// Log.d(TAG, "playServices not available in onCreate");
 		}
 	}
 
 	private String getRegistrationId(Context context) {
 		final SharedPreferences prefs = getGCMPreferences(context);
 		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-		if (registrationId.isEmpty()) {
-			// Log.i(TAG, "Registration not found.");
+		if (registrationId.isEmpty()) {	
 			return "";
 		}
-
 		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION,
 				Integer.MIN_VALUE);
 		int currentVersion = getAppVersion(context);
 		if (registeredVersion != currentVersion) {
-			// Log.i(TAG, "App version changed.");
 			return "";
 		}
 		return registrationId;
@@ -408,7 +395,6 @@ public class MainActivity extends FragmentActivity implements
 	private void storeRegistrationId(Context context, String regId) {
 		final SharedPreferences prefs = getGCMPreferences(context);
 		int appVersion = getAppVersion(context);
-		// Log.i(TAG, "Saving regId on app version " + appVersion);
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.putString(PROPERTY_REG_ID, regId);
 		editor.putInt(PROPERTY_APP_VERSION, appVersion);
@@ -416,7 +402,6 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public boolean checkPlayServices() {
-		// Log.d(TAG, "in checkPlayServices");
 		int resultCode = GooglePlayServicesUtil
 				.isGooglePlayServicesAvailable(this);
 		if (resultCode != ConnectionResult.SUCCESS) {
@@ -424,7 +409,6 @@ public class MainActivity extends FragmentActivity implements
 				GooglePlayServicesUtil.getErrorDialog(resultCode, this,
 						PLAY_SERVICES_RESOLUTION_REQUEST).show();
 			} else {
-				// Log.i(TAG, "This device is not supported.");
 				finish();
 			}
 			return false;
@@ -450,7 +434,6 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public void onMapReady(GoogleMap arg0) {
-		Log.d(TAG, "map is ready");
 		mMap = arg0;
 		mMap.setMyLocationEnabled(true);
 		buildGoogleApiClient();
@@ -466,12 +449,11 @@ public class MainActivity extends FragmentActivity implements
 		mLastLocation = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
 		if (mLastLocation != null) {
-			Log.d(TAG, "mLastLocation is not null");
+			// Log.d(TAG, "mLastLocation is not null");
 			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
 					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
 					16));
 		} else {
-			Log.d(TAG, "mLastLocation is null");
 		}
 
 	}
@@ -504,7 +486,6 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			// return null;
 			return new HttpManager().sendUserData(params[0]);
 		}
 
