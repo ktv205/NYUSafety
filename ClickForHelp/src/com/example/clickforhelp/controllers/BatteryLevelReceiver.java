@@ -1,29 +1,27 @@
 package com.example.clickforhelp.controllers;
 
-import com.example.clickforhelp.R;
+import com.example.clickforhelp.models.AppPreferences;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
-import android.preference.PreferenceManager;
-
 import android.widget.Toast;
 
 public class BatteryLevelReceiver extends BroadcastReceiver {
-	//private static final String TAG = "BatteryLevelReceiver";
+	// private static final String TAG = "BatteryLevelReceiver";
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Toast.makeText(context, "battery level triggered", Toast.LENGTH_LONG)
 				.show();
 		int status = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
-		SharedPreferences pref = PreferenceManager
-				.getDefaultSharedPreferences(context);
-		int value = Integer
-				.valueOf(pref.getString(context
-						.getString(R.string.string_key_location_settings), "-1"));
+		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
+				context, AppPreferences.SharedPrefLocationSettings.name);
+		int value = pref.getInt(
+				AppPreferences.SharedPrefLocationSettings.Preference,
+				AppPreferences.SharedPrefLocationSettings.ALWAYS);
 		if (value == 1) {
 
 		} else if (value == 2) {

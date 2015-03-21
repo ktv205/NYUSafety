@@ -1,11 +1,13 @@
 package com.example.clickforhelp.controllers;
 
+import java.util.HashMap;
+
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
+import android.app.Activity;
 import android.app.Fragment;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,17 +19,33 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class EmailFragment extends Fragment {
-	//private final static String TAG = "EmailFragment";
+	// private final static String TAG = "EmailFragment";
 	private final static int EMAIL_EMPTY = 0;
 	private final static int RESULT_OK = 1;
 	private final static int INVALID_EMAIL = 6;
 	private String email;
 	View view;
+	private EmailFragmentInterface emailFragmentInterface;
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			emailFragmentInterface = (EmailFragmentInterface) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnHeadlineSelectedListener");
+		}
+	}
+
+	public interface EmailFragmentInterface {
+		public void replaceWithVerificationCodeFragment();
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_email, container, false);
+		view = inflater.inflate(R.layout.fragment_email, container, false);
 		Button emailButton = (Button) view
 				.findViewById(R.id.email_button_submit);
 		emailButton.setOnClickListener(new OnClickListener() {
@@ -42,13 +60,13 @@ public class EmailFragment extends Fragment {
 					message = "enter valid nyu email id";
 				} else {
 					message = "everything looks good";
-					String[] values = {
-							"public",
-							"index.php",
-							 };
+					String[] values = { "public", "index.php",
+							"verificationcode", email };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
+					new SendEmailAsyncTask().execute(params);
+
 				}
 				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
 						.show();
@@ -73,14 +91,35 @@ public class EmailFragment extends Fragment {
 		return flag;
 
 	}
-	public class SendEmailAsyncTask extends AsyncTask<RequestParams, Void, String>{
+
+	public class SendEmailAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			
-			return null;
+
+			return new HttpManager().sendUserData(params[0]);
 		}
-		
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			if (result.contains("1")) {
+				Toast.makeText(getActivity(), "new user", Toast.LENGTH_SHORT)
+						.show();
+			} else if (result.contains("2")) {
+				Toast.makeText(getActivity(), "existing user do something",
+						Toast.LENGTH_SHORT).show();
+				HashMap<String, String> values = new HashMap<String, String>();
+				values.put(AppPreferences.SharedPrefAuthentication.user_email,
+						email);
+				new CommonFunctions().saveInPreferences(getActivity(),
+						AppPreferences.SharedPrefAuthentication.name, values);
+				emailFragmentInterface.replaceWithVerificationCodeFragment();
+				
+			}
+		}
+
 	}
 
 }

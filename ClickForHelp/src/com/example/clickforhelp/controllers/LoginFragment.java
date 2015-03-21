@@ -155,11 +155,11 @@ public class LoginFragment extends Fragment {
 			super.onPostExecute(result);
 			if (result.contains("1")) {
 				HashMap<String, String> values = new HashMap<String, String>();
-				values.put(AppPreferences.SharedPref.user_email,
+				values.put(AppPreferences.SharedPrefAuthentication.user_email,
 						user.getEmail());
-				values.put(AppPreferences.SharedPref.flag, "1");
+				values.put(AppPreferences.SharedPrefAuthentication.flag, "1");
 				new CommonFunctions().saveInPreferences(getActivity(),
-						AppPreferences.SharedPref.name, values);
+						AppPreferences.SharedPrefAuthentication.name, values);
 				Intent intent = new Intent(getActivity(), MainActivity.class);
 				getActivity().startActivity(intent);
 				getActivity().finish();

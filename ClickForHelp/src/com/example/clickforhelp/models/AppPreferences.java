@@ -13,12 +13,20 @@ public class AppPreferences {
 		public final static String verificationtomain="verificationtomain";
 		public final static String verificationtoauthentication="verificationtoauthentication";
 	}
-	public static abstract class SharedPref{
+	public static abstract class SharedPrefAuthentication{
 		public final static String name="Authentication";
 		public final static String user_name="user_name";
 		public final static String user_email="user_email";
 		public final static String user_id="user_id";
 		public final static String flag="user_status";	
+	}
+	public static abstract class SharedPrefLocationSettings{
+		public final static String name="LocationUpdatePreference";
+		public final static String Preference="preference";
+		public final static int NEVER=4;
+		public final static int ALWAYS=1;
+		public final static int RECOMENDED=2;
+		public final static int PLUGGEDIN=3;
 	}
 	public static abstract class ServerVariables{
 		public final static String SCHEME="http";

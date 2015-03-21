@@ -27,9 +27,9 @@ public class ReceiveLocationService extends Service {
 						"public",
 						"index.php",
 						"trackuser",
-						getSharedPreferences(AppPreferences.SharedPref.name,
+						getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
 								MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.user_email, ""),
+								AppPreferences.SharedPrefAuthentication.user_email, ""),
 						intent.getExtras().getString("userid") };
 				RequestParams params = CommonFunctions.setParams(
 						AppPreferences.ServerVariables.SCHEME,
@@ -41,9 +41,9 @@ public class ReceiveLocationService extends Service {
 						"public",
 						"index.php",
 						"home",
-						getSharedPreferences(AppPreferences.SharedPref.name,
+						getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
 								MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.user_email, "") };
+								AppPreferences.SharedPrefAuthentication.user_email, "") };
 				RequestParams params = CommonFunctions.setParams(
 						AppPreferences.ServerVariables.SCHEME,
 						AppPreferences.ServerVariables.AUTHORITY, values);

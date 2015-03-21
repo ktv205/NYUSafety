@@ -36,7 +36,6 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -147,9 +146,9 @@ public class MainActivity extends FragmentActivity implements
 							"index.php",
 							"askhelp",
 							getSharedPreferences(
-									AppPreferences.SharedPref.name,
+									AppPreferences.SharedPrefAuthentication.name,
 									MODE_PRIVATE).getString(
-									AppPreferences.SharedPref.user_email, "") };
+									AppPreferences.SharedPrefAuthentication.user_email, "") };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
@@ -181,10 +180,11 @@ public class MainActivity extends FragmentActivity implements
 		alarmManager.cancel(pendingIntent);
 		
 		// checking user preference for location update
-		SharedPreferences pref = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		final int value = Integer.valueOf(pref.getString(
-				getString(R.string.string_key_location_settings), "-1"));
+		SharedPreferences pref = new CommonFunctions().getSharedPreferences(context, AppPreferences.SharedPrefLocationSettings.name);
+		final int value = pref.getInt(
+				AppPreferences.SharedPrefLocationSettings.Preference,
+				AppPreferences.SharedPrefLocationSettings.ALWAYS);
+		
 		// starting a service to send location updates to server
 		settingUserPreferenceLocationUpdates(value);
 	}
@@ -383,9 +383,9 @@ public class MainActivity extends FragmentActivity implements
 				"public",
 				"index.php",
 				"updategcm",
-				getSharedPreferences(AppPreferences.SharedPref.name,
+				getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
 						MODE_PRIVATE).getString(
-						AppPreferences.SharedPref.user_email, ""), regid };
+						AppPreferences.SharedPrefAuthentication.user_email, ""), regid };
 		RequestParams params = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, values);

@@ -127,11 +127,11 @@ public class SignupFragment extends Fragment {
 		user.setEmail(email);
 		user.setPassword(password);
 		HashMap<String, String> values = new HashMap<String, String>();
-		values.put(AppPreferences.SharedPref.user_name, name);
-		values.put(AppPreferences.SharedPref.user_email, email);
-		values.put(AppPreferences.SharedPref.flag, "0");
+		values.put(AppPreferences.SharedPrefAuthentication.user_name, name);
+		values.put(AppPreferences.SharedPrefAuthentication.user_email, email);
+		values.put(AppPreferences.SharedPrefAuthentication.flag, "0");
 		new CommonFunctions().saveInPreferences(getActivity(),
-				AppPreferences.SharedPref.name, values);
+				AppPreferences.SharedPrefAuthentication.name, values);
 	}
 
 	public int getTextFromFields() {

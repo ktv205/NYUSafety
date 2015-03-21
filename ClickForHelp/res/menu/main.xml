@@ -7,16 +7,5 @@
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/action_settings"/>
-    <item
-        android:id="@+id/action_password"
-        android:orderInCategory="97"
-        android:showAsAction="never"
-        android:title="@string/action_password"/>
-    <item
-        android:id="@+id/action_logout"
-        android:orderInCategory="98"
-        android:showAsAction="never"
-        android:title="@string/action_logout">
-    </item>
 
 </menu>

@@ -18,9 +18,6 @@
     <string name="string_text_submit" translatable="false">Submit</string>
     <string name="string_app_name" translatable="false">NYU SAFETY</string>
     <string name="string_nyu_signup" translatable="false">Sign up with nyu email</string>
-    <string name="string_location_settings" translatable="false">Location 
-        Update Settings</string>
-    <string name="string_key_location_settings" translatable="false">locationkey</string>
     <string name="string_button_help">Ask For Help</string>
     <string name="login_forgot_password">Forgot password?</string>
     <string name="login_not_member">Not a member?</string>
@@ -29,5 +26,9 @@
     <string name="verify">Verify</string>
     <string name="action_password">change password</string>
     <string name="action_logout">logout</string>
+    <string name="dialog_always">Send updates all the time</string>
+    <string name="dialog_never">Never(not recommended)</string>
+    <string name="dialog_plugged">When plugged in to a power source</string>
+    <string name="dialog_recommended">If the power is more than 15 percent(recommended)</string>
 
 </resources>

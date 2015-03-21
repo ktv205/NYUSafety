@@ -6,6 +6,7 @@ import com.example.clickforhelp.R;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,22 @@ public class EmailVerificationFragment extends Fragment {
 	private final static int RESULT_OK = 1;
 	private String code;
 	View view;
+	private EmailVerificationFragmentInterface emailVerificationFragmentInterface;
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			emailVerificationFragmentInterface = (EmailVerificationFragmentInterface) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnHeadlineSelectedListener");
+		}
+	}
+
+	public interface EmailVerificationFragmentInterface {
+		public void replaceWithNewPasswordFragment();
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,10 +68,13 @@ public class EmailVerificationFragment extends Fragment {
 						"public",
 						"index.php",
 						"verificationcode",
-						getActivity().getSharedPreferences(
-								AppPreferences.SharedPref.name,
-								Context.MODE_PRIVATE).getString(
-								AppPreferences.SharedPref.user_email, "") };
+						getActivity()
+								.getSharedPreferences(
+										AppPreferences.SharedPrefAuthentication.name,
+										Context.MODE_PRIVATE)
+								.getString(
+										AppPreferences.SharedPrefAuthentication.user_email,
+										"") };
 				RequestParams params = CommonFunctions.setParams(
 						AppPreferences.ServerVariables.SCHEME,
 						AppPreferences.ServerVariables.AUTHORITY, values);
@@ -76,11 +96,13 @@ public class EmailVerificationFragment extends Fragment {
 							"public",
 							"index.php",
 							"verify",
-							getActivity().getSharedPreferences(
-									AppPreferences.SharedPref.name,
-									Context.MODE_PRIVATE).getString(
-									AppPreferences.SharedPref.user_email, ""),
-							code };
+							getActivity()
+									.getSharedPreferences(
+											AppPreferences.SharedPrefAuthentication.name,
+											Context.MODE_PRIVATE)
+									.getString(
+											AppPreferences.SharedPrefAuthentication.user_email,
+											""), code };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
@@ -119,12 +141,17 @@ public class EmailVerificationFragment extends Fragment {
 			super.onPostExecute(result);
 			if (result.equals("1")) {
 				HashMap<String, String> values = new HashMap<String, String>();
-				values.put(AppPreferences.SharedPref.flag, "1");
+				values.put(AppPreferences.SharedPrefAuthentication.flag, "1");
 				new CommonFunctions().saveInPreferences(getActivity(),
-						AppPreferences.SharedPref.name, values);
-				Intent intent = new Intent(getActivity(), MainActivity.class);
-				getActivity().startActivity(intent);
-				getActivity().finish();
+						AppPreferences.SharedPrefAuthentication.name, values);
+				if (getArguments().containsKey("new password")) {
+                     emailVerificationFragmentInterface.replaceWithNewPasswordFragment();
+				} else {
+					Intent intent = new Intent(getActivity(),
+							MainActivity.class);
+					getActivity().startActivity(intent);
+					getActivity().finish();
+				}
 			} else {
 				Toast.makeText(getActivity(), "entered code is wrong",
 						Toast.LENGTH_SHORT).show();
