@@ -21,8 +21,8 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
 		int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
 		boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 
-		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
-				context, AppPreferences.SharedPrefLocationSettings.name);
+		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
+				AppPreferences.SharedPrefLocationSettings.name);
 		int value = pref.getInt(
 				AppPreferences.SharedPrefLocationSettings.Preference,
 				AppPreferences.SharedPrefLocationSettings.ALWAYS);
@@ -30,7 +30,7 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
 
 		} else if (value == 3) {
 			if (acCharge) {
-				if (new CommonFunctions().isMyServiceRunning(
+				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, context)) {
 
 				} else {
@@ -38,7 +38,7 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
 							LocationUpdateService.class));
 				}
 			} else {
-				if (new CommonFunctions().isMyServiceRunning(
+				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, context)) {
 					context.stopService(new Intent(context,
 							LocationUpdateService.class));

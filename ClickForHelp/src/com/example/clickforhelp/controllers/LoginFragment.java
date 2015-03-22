@@ -11,6 +11,7 @@ import com.example.clickforhelp.models.UserModel;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,13 +25,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginFragment extends Fragment {
-	//private final String TAG = "LoginFragment";
+	// private final String TAG = "LoginFragment";
 	private View view;
 	private String email, password;
 	private final static int EMAIL_EMPTY = 1;
 	private final static int PASSWORD_EMPTY = 2;
 	private final static int RESULT_OK = 5;
 	private UserModel user;
+	private final static String LOGIN_SUCCESS = "1";
 
 	private LoginInterface loginInterface;
 
@@ -93,14 +95,13 @@ public class LoginFragment extends Fragment {
 
 				@Override
 				public void onClick(View v) {
-					String message;
+					String message = null;
 					int flag = getTextFromFields();
 					if (flag == EMAIL_EMPTY) {
 						message = "email cant be empty";
 					} else if (flag == PASSWORD_EMPTY) {
 						message = "password cant be empty";
 					} else {
-						message = "everything looks good";
 						createUserModel();
 						String[] paths = { "public", "index.php", "login",
 								email, password };
@@ -109,8 +110,10 @@ public class LoginFragment extends Fragment {
 								ServerVariables.AUTHORITY, paths);
 						new SendLoginDetailsAsyncTask().execute(params);
 					}
-					Toast.makeText(getActivity(), message, Toast.LENGTH_LONG)
-							.show();
+					if (message != null) {
+						Toast.makeText(getActivity(), message,
+								Toast.LENGTH_LONG).show();
+					}
 
 				}
 			});
@@ -144,6 +147,17 @@ public class LoginFragment extends Fragment {
 
 	public class SendLoginDetailsAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog = new ProgressDialog(getActivity());
+			dialog.setTitle("Loading...");
+			dialog.setMessage("Please wait while we log you in");
+			dialog.show();
+
+		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
@@ -153,12 +167,13 @@ public class LoginFragment extends Fragment {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			if (result.contains("1")) {
+			dialog.dismiss();
+			if (result.contains(LOGIN_SUCCESS)) {
 				HashMap<String, String> values = new HashMap<String, String>();
 				values.put(AppPreferences.SharedPrefAuthentication.user_email,
 						user.getEmail());
 				values.put(AppPreferences.SharedPrefAuthentication.flag, "1");
-				new CommonFunctions().saveInPreferences(getActivity(),
+				CommonFunctions.saveInPreferences(getActivity(),
 						AppPreferences.SharedPrefAuthentication.name, values);
 				Intent intent = new Intent(getActivity(), MainActivity.class);
 				getActivity().startActivity(intent);
@@ -167,10 +182,6 @@ public class LoginFragment extends Fragment {
 				Toast.makeText(getActivity(), "email or password mismatch",
 						Toast.LENGTH_SHORT).show();
 			}
-		}
-
-		public void jsonString(String result) {
-
 		}
 	}
 

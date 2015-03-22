@@ -83,7 +83,8 @@ public class LocationUpdateService extends Service implements
 				"public",
 				"index.php",
 				"updatelocation",
-				getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
+				getSharedPreferences(
+						AppPreferences.SharedPrefAuthentication.name,
 						MODE_PRIVATE).getString(
 						AppPreferences.SharedPrefAuthentication.user_email, ""),
 				String.valueOf(arg0.getLatitude()),
@@ -91,7 +92,9 @@ public class LocationUpdateService extends Service implements
 		RequestParams locationParams = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, locationValues);
-		new SendLocationsAsyncTask().execute(locationParams);
+		if (CommonFunctions.isConnected(this)) {
+			new SendLocationsAsyncTask().execute(locationParams);
+		}
 
 	}
 

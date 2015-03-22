@@ -66,7 +66,7 @@ public class LocationSettingsDialogFragment extends DialogFragment {
 						.show();
 				RadioButton radioButton = (RadioButton) view
 						.findViewById(R.id.list_item_radio);
-				SharedPreferences pref = new CommonFunctions()
+				SharedPreferences pref =CommonFunctions
 						.getSharedPreferences(getActivity(),
 								AppPreferences.SharedPrefLocationSettings.name);
 				SharedPreferences.Editor edit = pref.edit();
@@ -83,14 +83,13 @@ public class LocationSettingsDialogFragment extends DialogFragment {
 	}
 
 	public class DialogListAdapter extends BaseAdapter {
-		int value = new CommonFunctions().getSharedPreferences(getActivity(),
+		int value =CommonFunctions.getSharedPreferences(getActivity(),
 				AppPreferences.SharedPrefLocationSettings.name).getInt(
 				AppPreferences.SharedPrefLocationSettings.Preference, 2);
 		private int LIST_COUNT = 4;
 
 		@Override
 		public int getCount() {
-			// TODO Auto-generated method stub
 			return LIST_COUNT;
 		}
 
@@ -134,7 +133,6 @@ public class LocationSettingsDialogFragment extends DialogFragment {
 
 		@Override
 		public long getItemId(int position) {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 

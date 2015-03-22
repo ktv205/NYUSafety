@@ -8,6 +8,7 @@ import com.example.clickforhelp.models.RequestParams;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,6 +24,9 @@ public class EmailFragment extends Fragment {
 	private final static int EMAIL_EMPTY = 0;
 	private final static int RESULT_OK = 1;
 	private final static int INVALID_EMAIL = 6;
+	private final static String NEW_USER = "1";
+	private final static String EXISTING_USER = "2";
+
 	private String email;
 	View view;
 	private EmailFragmentInterface emailFragmentInterface;
@@ -53,13 +57,12 @@ public class EmailFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				int flag = getTextFromFields();
-				String message;
+				String message = null;
 				if (flag == EMAIL_EMPTY) {
 					message = "please enter the nyu email";
 				} else if (flag == INVALID_EMAIL) {
 					message = "enter valid nyu email id";
 				} else {
-					message = "everything looks good";
 					String[] values = { "public", "index.php",
 							"verificationcode", email };
 					RequestParams params = CommonFunctions.setParams(
@@ -68,8 +71,10 @@ public class EmailFragment extends Fragment {
 					new SendEmailAsyncTask().execute(params);
 
 				}
-				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
-						.show();
+				if (message != null) {
+					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
+							.show();
+				}
 
 			}
 		});
@@ -83,7 +88,7 @@ public class EmailFragment extends Fragment {
 		int flag;
 		if (email.isEmpty()) {
 			flag = EMAIL_EMPTY;
-		} else if (!new CommonFunctions().validNyuEmail(email)) {
+		} else if (!CommonFunctions.validNyuEmail(email)) {
 			flag = INVALID_EMAIL;
 		} else {
 			flag = RESULT_OK;
@@ -94,6 +99,16 @@ public class EmailFragment extends Fragment {
 
 	public class SendEmailAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog = new ProgressDialog(getActivity());
+			dialog.setTitle("Loading...");
+			dialog.setMessage("Please wait while we verify your email");
+			dialog.show();
+		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
@@ -104,19 +119,20 @@ public class EmailFragment extends Fragment {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
-			if (result.contains("1")) {
-				Toast.makeText(getActivity(), "new user", Toast.LENGTH_SHORT)
-						.show();
-			} else if (result.contains("2")) {
-				Toast.makeText(getActivity(), "existing user do something",
+			dialog.cancel();
+			if (result.contains(NEW_USER)) {
+				Toast.makeText(
+						getActivity(),
+						"we couldnt find your email,please sign up if you are a new user",
 						Toast.LENGTH_SHORT).show();
+			} else if (result.contains(EXISTING_USER)) {
 				HashMap<String, String> values = new HashMap<String, String>();
 				values.put(AppPreferences.SharedPrefAuthentication.user_email,
 						email);
-				new CommonFunctions().saveInPreferences(getActivity(),
+				CommonFunctions.saveInPreferences(getActivity(),
 						AppPreferences.SharedPrefAuthentication.name, values);
 				emailFragmentInterface.replaceWithVerificationCodeFragment();
-				
+
 			}
 		}
 

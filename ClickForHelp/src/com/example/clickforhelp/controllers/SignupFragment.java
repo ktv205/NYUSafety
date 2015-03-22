@@ -10,6 +10,7 @@ import com.example.clickforhelp.models.UserModel;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ public class SignupFragment extends Fragment {
 	private final static int RESULT_OK = 5;
 	private final static int INVALID_EMAIL = 6;
 	private final static int PHONE_EMPTY = 7;
+	private final static String NEXT_STEP = "1";
 	private String name, email, password, reType, phone;
 	private UserModel user;
 
@@ -84,7 +86,7 @@ public class SignupFragment extends Fragment {
 
 				@Override
 				public void onClick(View v) {
-					String message;
+					String message = null;
 					int flag = getTextFromFields();
 					if (flag == NAME_EMPTY) {
 						message = "name cant be empty";
@@ -101,7 +103,6 @@ public class SignupFragment extends Fragment {
 					} else if (flag == PHONE_EMPTY) {
 						message = "enter a valid phone number";
 					} else {
-						message = "everything looks good";
 						createUserModel();
 						String[] paths = { "public", "index.php", "adduser",
 								email, name, password, phone };
@@ -110,8 +111,10 @@ public class SignupFragment extends Fragment {
 								ServerVariables.AUTHORITY, paths);
 						new SendSignupDetailsAsyncTask().execute(params);
 					}
-					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
-							.show();
+					if (message != null) {
+						Toast.makeText(getActivity(), message,
+								Toast.LENGTH_SHORT).show();
+					}
 
 				}
 			});
@@ -130,7 +133,7 @@ public class SignupFragment extends Fragment {
 		values.put(AppPreferences.SharedPrefAuthentication.user_name, name);
 		values.put(AppPreferences.SharedPrefAuthentication.user_email, email);
 		values.put(AppPreferences.SharedPrefAuthentication.flag, "0");
-		new CommonFunctions().saveInPreferences(getActivity(),
+		CommonFunctions.saveInPreferences(getActivity(),
 				AppPreferences.SharedPrefAuthentication.name, values);
 	}
 
@@ -160,7 +163,7 @@ public class SignupFragment extends Fragment {
 			return RETYPE_EMPTY;
 		} else if (!password.equals(reType)) {
 			return DONT_MATCH;
-		} else if (!new CommonFunctions().validNyuEmail(email)) {
+		} else if (!CommonFunctions.validNyuEmail(email)) {
 			return INVALID_EMAIL;
 		} else if (phone.isEmpty() || phone.length() > 10
 				|| phone.length() < 10) {
@@ -175,6 +178,16 @@ public class SignupFragment extends Fragment {
 	public class SendSignupDetailsAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
 
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog = new ProgressDialog(getActivity());
+			dialog.setTitle(AppPreferences.Others.LOADING);
+			dialog.setMessage("please wait while we process your details");
+		}
+
 		@Override
 		protected String doInBackground(RequestParams... params) {
 			return new HttpManager().sendUserData(params[0]);
@@ -184,7 +197,7 @@ public class SignupFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			if (result != null) {
-				if (result.contains("1")) {
+				if (result.contains(NEXT_STEP)) {
 					signupInterface.switchToLogin(2);
 				} else {
 					Toast.makeText(getActivity(),

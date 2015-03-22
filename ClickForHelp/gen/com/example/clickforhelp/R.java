@@ -488,12 +488,12 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f020024;
     }
     public static final class id {
-        public static final int action_settings=0x7f0c0037;
+        public static final int action_settings=0x7f0c0039;
         public static final int adjust_height=0x7f0c0000;
         public static final int adjust_width=0x7f0c0001;
         public static final int authentication_parent0_linear=0x7f0c0017;
         public static final int book_now=0x7f0c0010;
-        public static final int button_help=0x7f0c0036;
+        public static final int button_help=0x7f0c0038;
         public static final int buyButton=0x7f0c000c;
         public static final int buy_now=0x7f0c0011;
         public static final int buy_with_google=0x7f0c0012;
@@ -503,26 +503,28 @@ containing a value of this type.
         public static final int email_button_submit=0x7f0c001b;
         public static final int email_edit_email=0x7f0c001a;
         public static final int forgotpassword_linear=0x7f0c0018;
-        public static final int fverification_button_submit=0x7f0c002e;
-        public static final int fverification_edit_code=0x7f0c002c;
-        public static final int fverification_text_resend=0x7f0c002d;
+        public static final int fverification_button_submit=0x7f0c002f;
+        public static final int fverification_edit_code=0x7f0c002d;
+        public static final int fverification_text_resend=0x7f0c002e;
         public static final int grayscale=0x7f0c0015;
         public static final int holo_dark=0x7f0c0007;
         public static final int holo_light=0x7f0c0008;
         public static final int hybrid=0x7f0c0003;
-        public static final int list_item_radio=0x7f0c0034;
-        public static final int list_item_text=0x7f0c0033;
-        public static final int login_back=0x7f0c002b;
+        public static final int list_item_radio=0x7f0c0035;
+        public static final int list_item_text=0x7f0c0034;
+        public static final int login_back=0x7f0c002c;
         public static final int login_button_submit=0x7f0c0020;
         public static final int login_edit_email=0x7f0c001d;
         public static final int login_edit_password=0x7f0c001e;
         public static final int login_text_forgot=0x7f0c001f;
-        public static final int map=0x7f0c0035;
+        public static final int map=0x7f0c0037;
         public static final int match_parent=0x7f0c000e;
         public static final int monochrome=0x7f0c0016;
-        public static final int newpassword_button_submit=0x7f0c0024;
-        public static final int newpassword_edit_password=0x7f0c0022;
-        public static final int newpassword_edit_reenter=0x7f0c0023;
+        public static final int newpassword_button_submit=0x7f0c0025;
+        public static final int newpassword_edit_old_password=0x7f0c0022;
+        public static final int newpassword_edit_password=0x7f0c0023;
+        public static final int newpassword_edit_reenter=0x7f0c0024;
+        public static final int no_connection_retry=0x7f0c0036;
         public static final int none=0x7f0c0002;
         public static final int normal=0x7f0c0004;
         public static final int production=0x7f0c0009;
@@ -531,18 +533,18 @@ containing a value of this type.
         public static final int selectionDetails=0x7f0c000d;
         public static final int settings_list=0x7f0c0019;
         public static final int signup_back=0x7f0c0021;
-        public static final int signup_button_submit=0x7f0c002a;
-        public static final int signup_edit_email=0x7f0c0026;
-        public static final int signup_edit_name=0x7f0c0025;
-        public static final int signup_edit_password=0x7f0c0028;
-        public static final int signup_edit_phone=0x7f0c0027;
-        public static final int signup_edit_repassword=0x7f0c0029;
+        public static final int signup_button_submit=0x7f0c002b;
+        public static final int signup_edit_email=0x7f0c0027;
+        public static final int signup_edit_name=0x7f0c0026;
+        public static final int signup_edit_password=0x7f0c0029;
+        public static final int signup_edit_phone=0x7f0c0028;
+        public static final int signup_edit_repassword=0x7f0c002a;
         public static final int strict_sandbox=0x7f0c000b;
         public static final int terrain=0x7f0c0006;
-        public static final int welcome_button_signup=0x7f0c0030;
-        public static final int welcome_parent0_relative=0x7f0c002f;
-        public static final int welcome_text_login=0x7f0c0032;
-        public static final int welcome_text_member=0x7f0c0031;
+        public static final int welcome_button_signup=0x7f0c0031;
+        public static final int welcome_parent0_relative=0x7f0c0030;
+        public static final int welcome_text_login=0x7f0c0033;
+        public static final int welcome_text_member=0x7f0c0032;
         public static final int wrap_content=0x7f0c000f;
     }
     public static final class integer {
@@ -550,18 +552,20 @@ containing a value of this type.
     }
     public static final class layout {
         public static final int activity_authentication=0x7f030000;
-        public static final int activity_forgotpassword=0x7f030001;
-        public static final int activity_main=0x7f030002;
-        public static final int activity_settings=0x7f030003;
-        public static final int fragment_email=0x7f030004;
-        public static final int fragment_location_settings_dialog=0x7f030005;
-        public static final int fragment_login=0x7f030006;
-        public static final int fragment_newpassword=0x7f030007;
-        public static final int fragment_signup=0x7f030008;
-        public static final int fragment_verification=0x7f030009;
-        public static final int fragment_welcome=0x7f03000a;
-        public static final int list_item_dialog=0x7f03000b;
-        public static final int test_map=0x7f03000c;
+        public static final int activity_feedback=0x7f030001;
+        public static final int activity_forgotpassword=0x7f030002;
+        public static final int activity_main=0x7f030003;
+        public static final int activity_settings=0x7f030004;
+        public static final int fragment_email=0x7f030005;
+        public static final int fragment_location_settings_dialog=0x7f030006;
+        public static final int fragment_login=0x7f030007;
+        public static final int fragment_newpassword=0x7f030008;
+        public static final int fragment_signup=0x7f030009;
+        public static final int fragment_verification=0x7f03000a;
+        public static final int fragment_welcome=0x7f03000b;
+        public static final int list_item_dialog=0x7f03000c;
+        public static final int no_connection=0x7f03000d;
+        public static final int test_map=0x7f03000e;
     }
     public static final class menu {
         public static final int main=0x7f0b0000;
@@ -685,6 +689,10 @@ containing a value of this type.
         public static final int login=0x7f060038;
         public static final int login_forgot_password=0x7f060035;
         public static final int login_not_member=0x7f060036;
+        public static final int new_password=0x7f060043;
+        public static final int no_connection=0x7f060041;
+        public static final int no_connection_retry=0x7f060040;
+        public static final int old_password=0x7f060042;
         public static final int register=0x7f060037;
         public static final int store_picture_message=0x7f060001;
         public static final int store_picture_title=0x7f060000;

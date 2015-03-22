@@ -11,8 +11,6 @@ import java.net.URL;
 
 import com.example.clickforhelp.models.RequestParams;
 
-//import org.apache.http.impl.client.DefaultHttpClient;
-
 public class HttpManager {
 	// private final static String TAG = "HttpManager";
 	public String sendUserData(RequestParams params) {

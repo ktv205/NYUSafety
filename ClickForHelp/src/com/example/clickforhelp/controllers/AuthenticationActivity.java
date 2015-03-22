@@ -14,6 +14,9 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class AuthenticationActivity extends Activity implements
 		OnClickAuthentication, LoginInterface, SignupInterface {
@@ -31,30 +34,55 @@ public class AuthenticationActivity extends Activity implements
 		setContentView(R.layout.activity_authentication);
 		ActionBar bar = getActionBar();
 		bar.setIcon(R.drawable.nyu_white);
-		Log.d(TAG,getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
-				MODE_PRIVATE).getString(AppPreferences.SharedPrefAuthentication.flag,
-				"")+" flag");
-		if (!getSharedPreferences(AppPreferences.SharedPrefAuthentication.name, MODE_PRIVATE)
-				.getString(AppPreferences.SharedPrefAuthentication.user_email, "").isEmpty()
-				&& getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
-						MODE_PRIVATE).getString(AppPreferences.SharedPrefAuthentication.flag,
-						"").equals("1")) {
-			startActivity(new Intent(this, MainActivity.class));
-			finish();
+		if (CommonFunctions.isConnected(this)) {
+			if (!getSharedPreferences(
+					AppPreferences.SharedPrefAuthentication.name, MODE_PRIVATE)
+					.getString(
+							AppPreferences.SharedPrefAuthentication.user_email,
+							"").isEmpty()
+					&& getSharedPreferences(
+							AppPreferences.SharedPrefAuthentication.name,
+							MODE_PRIVATE).getString(
+							AppPreferences.SharedPrefAuthentication.flag, "")
+							.equals("1")) {
+				startActivity(new Intent(this, MainActivity.class));
+				finish();
+			}
+			fragmentManager = getFragmentManager();
+			fragmentTransaction = fragmentManager.beginTransaction();
+			Fragment fragment = getFragmentManager().findFragmentByTag(
+					WELCOMETAG);
+			Fragment loginFragment = getFragmentManager().findFragmentByTag(
+					LOGINTAG);
+			Fragment signupFragment = getFragmentManager().findFragmentByTag(
+					SIGNUPTAG);
+			if (fragment == null
+					&& (loginFragment == null && signupFragment == null)) {
+				Log.d(TAG, "welcome fragment is null in onCreate");
+				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+						new WelcomeFragment(), WELCOMETAG).commit();
+			}
+		} else {
+			setNoConnectionView();
 		}
-		fragmentManager = getFragmentManager();
-		fragmentTransaction = fragmentManager.beginTransaction();
-		Fragment fragment = getFragmentManager().findFragmentByTag(WELCOMETAG);
-		Fragment loginFragment = getFragmentManager().findFragmentByTag(
-				LOGINTAG);
-		Fragment signupFragment = getFragmentManager().findFragmentByTag(
-				SIGNUPTAG);
-		if (fragment == null
-				&& (loginFragment == null && signupFragment == null)) {
-			Log.d(TAG, "welcome fragment is null in onCreate");
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
-					new WelcomeFragment(), WELCOMETAG).commit();
-		}
+
+	}
+
+	public void setNoConnectionView() {
+		setContentView(R.layout.no_connection);
+		Button button = (Button) findViewById(R.id.no_connection_retry);
+		button.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (CommonFunctions.isConnected(AuthenticationActivity.this)) {
+					startActivity(new Intent(AuthenticationActivity.this,
+							AuthenticationActivity.class));
+					finish();
+				}
+
+			}
+		});
 	}
 
 	@Override
@@ -70,6 +98,9 @@ public class AuthenticationActivity extends Activity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
+		if (!CommonFunctions.isConnected(this)) {
+			setNoConnectionView();
+		}
 	}
 
 	@Override

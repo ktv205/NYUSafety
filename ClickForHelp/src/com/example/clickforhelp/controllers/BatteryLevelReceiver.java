@@ -17,25 +17,25 @@ public class BatteryLevelReceiver extends BroadcastReceiver {
 		Toast.makeText(context, "battery level triggered", Toast.LENGTH_LONG)
 				.show();
 		int status = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
-		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
-				context, AppPreferences.SharedPrefLocationSettings.name);
+		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
+				AppPreferences.SharedPrefLocationSettings.name);
 		int value = pref.getInt(
 				AppPreferences.SharedPrefLocationSettings.Preference,
 				AppPreferences.SharedPrefLocationSettings.ALWAYS);
-		if (value == 1) {
+		if (value == AppPreferences.SharedPrefLocationSettings.ALWAYS) {
 
-		} else if (value == 2) {
+		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
 
 			if (status == BatteryManager.BATTERY_HEALTH_COLD
 					|| status == BatteryManager.BATTERY_HEALTH_DEAD) {
-				if (new CommonFunctions().isMyServiceRunning(
+				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, context)) {
 					context.stopService(new Intent(context,
 							LocationUpdateService.class));
 				}
 
 			} else if (status == BatteryManager.BATTERY_HEALTH_GOOD) {
-				if (new CommonFunctions().isMyServiceRunning(
+				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, context)) {
 
 				} else {

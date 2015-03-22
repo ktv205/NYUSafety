@@ -6,6 +6,7 @@ import com.example.clickforhelp.models.RequestParams;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -26,7 +27,9 @@ public class NewPasswordFragment extends Fragment {
 	private final static int RETYPE_EMPTY = 3;
 	private final static int DONT_MATCH = 4;
 	private final static int RESULT_OK = 5;
+	private final static String SET = "1";
 	private String password, reType;
+	EditText oldEditText;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,11 +38,14 @@ public class NewPasswordFragment extends Fragment {
 				.inflate(R.layout.fragment_newpassword, container, false);
 		Button submitButton = (Button) view
 				.findViewById(R.id.newpassword_button_submit);
+		oldEditText = (EditText) view
+				.findViewById(R.id.newpassword_edit_old_password);
+
 		submitButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				String message;
+				String message = null;
 				int flag = getTextFromFields();
 				if (flag == PASSWORD_EMPTY) {
 					message = "password cant be empty";
@@ -48,8 +54,6 @@ public class NewPasswordFragment extends Fragment {
 				} else if (flag == DONT_MATCH) {
 					message = "password do not match";
 				} else {
-					message = "everything looks good";
-
 					String[] paths = {
 							"public",
 							"index.php",
@@ -67,12 +71,29 @@ public class NewPasswordFragment extends Fragment {
 					Log.d(TAG, params.getURI());
 					new SendPasswordAsyncTask().execute(params);
 				}
-				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
-						.show();
+				if (message != null) {
+					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
+							.show();
+				}
 
 			}
 		});
 		return view;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		if (getActivity().getIntent() != null) {
+			if (getActivity().getIntent().hasExtra(
+					AppPreferences.IntentExtras.CHANGE)) {
+
+			} else {
+				oldEditText.setVisibility(View.GONE);
+			}
+		} else {
+			oldEditText.setVisibility(View.GONE);
+		}
 	}
 
 	public int getTextFromFields() {
@@ -99,6 +120,15 @@ public class NewPasswordFragment extends Fragment {
 
 	public class SendPasswordAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog = new ProgressDialog(getActivity());
+			dialog.setTitle(AppPreferences.Others.LOADING);
+			dialog.setMessage("Please wait while we set your new password");
+		}
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
@@ -107,11 +137,13 @@ public class NewPasswordFragment extends Fragment {
 
 		@Override
 		protected void onPostExecute(String result) {
-			Log.d(TAG, "result->" + result);
 			super.onPostExecute(result);
-			if (result.contains("1")) {
+			if (result.contains(SET)) {
+				Toast.makeText(getActivity(), "password reset",
+						Toast.LENGTH_SHORT).show();
 				if (getActivity().getIntent() != null) {
-					if (getActivity().getIntent().hasExtra("Extra_Int")) {
+					if (getActivity().getIntent().hasExtra(
+							AppPreferences.IntentExtras.CHANGE)) {
 						getActivity().setResult(0);
 						getActivity().finish();
 					} else {
@@ -123,6 +155,10 @@ public class NewPasswordFragment extends Fragment {
 					startActivity(new Intent(getActivity(), MainActivity.class));
 					getActivity().finishAffinity();
 				}
+			} else {
+				Toast.makeText(getActivity(),
+						"connection failure please try again",
+						Toast.LENGTH_SHORT).show();
 			}
 		}
 

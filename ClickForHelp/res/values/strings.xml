@@ -30,5 +30,9 @@
     <string name="dialog_never">Never(not recommended)</string>
     <string name="dialog_plugged">When plugged in to a power source</string>
     <string name="dialog_recommended">If the power is more than 15 percent(recommended)</string>
+    <string name="no_connection_retry">Retry</string>
+    <string name="no_connection">No network connection</string>
+    <string name="old_password">Old password</string>
+    <string name="new_password">New password</string>
 
 </resources>

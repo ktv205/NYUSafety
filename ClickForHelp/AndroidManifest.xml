@@ -63,6 +63,12 @@
             android:icon="@drawable/nyu_white"
             android:launchMode="singleInstance" >
         </activity>
+        <activity
+            android:name="com.example.clickforhelp.controllers.FeedbackActivity"
+            android:icon="@drawable/nyu_white"
+            android:launchMode="singleTop"
+            android:parentActivityName="com.example.clickforhelp.controllers.SettingsActivity" >
+        </activity>
 
         <receiver
             android:name="com.example.clickforhelp.controllers.GcmBroadcastReceiver"

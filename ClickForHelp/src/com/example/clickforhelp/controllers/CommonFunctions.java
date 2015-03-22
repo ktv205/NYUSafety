@@ -41,11 +41,11 @@ public class CommonFunctions {
 		return params;
 	}
 
-	public SharedPreferences getSharedPreferences(Context context, String name) {
+	public static SharedPreferences getSharedPreferences(Context context, String name) {
 		return context.getSharedPreferences(name, Context.MODE_PRIVATE);
 	}
 
-	public boolean saveInPreferences(Context context, String name,
+	public static boolean saveInPreferences(Context context, String name,
 			HashMap<String, String> values) {
 		SharedPreferences pref = getSharedPreferences(context, name);
 		SharedPreferences.Editor edit = pref.edit();
@@ -58,7 +58,7 @@ public class CommonFunctions {
 		return true;
 	}
 
-	public boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
+	public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
 		ActivityManager manager = (ActivityManager) context
 				.getSystemService(Context.ACTIVITY_SERVICE);
 		boolean running = false;
@@ -71,7 +71,7 @@ public class CommonFunctions {
 		return running;
 	}
 
-	public boolean validNyuEmail(String email) {
+	public static boolean validNyuEmail(String email) {
 		String[] split = email.split("@");
 		if (split.length > 1) {
 			if (split[1].equals("nyu.edu")) {
@@ -83,5 +83,7 @@ public class CommonFunctions {
 			return false;
 		}
 	}
+	
+	
 
 }

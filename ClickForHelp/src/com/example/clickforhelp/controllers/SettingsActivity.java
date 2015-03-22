@@ -45,10 +45,13 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 				} else if (position == 1) {
 					Intent intent = new Intent(SettingsActivity.this,
 							ForgotPasswordActivity.class);
-					intent.putExtra("Extra_Int", 1);
-					startActivityForResult(intent,0);
+					intent.putExtra(AppPreferences.IntentExtras.CHANGE, true);
+					startActivityForResult(intent, 0);
 				} else if (position == 2) {
 					logout();
+				} else if (position == 3) {
+					startActivityForResult(new Intent(SettingsActivity.this,
+							FeedbackActivity.class), RESULT_OK);
 				}
 			}
 		});
@@ -60,11 +63,11 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 		private static final int VIEW_TYPE_COUNT = 2;
 		private static final int VIEW_TYPE_TWOTEXT = 0;
 		private static final int VIEW_TYPE_SINGLETEXT = 1;
-		private static final int VIEW_COUNT = 3;
+		private static final int VIEW_COUNT = 4;
 		private String LocationUpdates = "Location Update Settings";
-		private String[] otherSettings = { "Change Password", "Logout" };
-		int value = new CommonFunctions().getSharedPreferences(
-				SettingsActivity.this,
+		private String[] otherSettings = { "Change Password", "Logout",
+				"Feedback" };
+		int value = CommonFunctions.getSharedPreferences(SettingsActivity.this,
 				AppPreferences.SharedPrefLocationSettings.name).getInt(
 				AppPreferences.SharedPrefLocationSettings.Preference, 2);
 
@@ -127,13 +130,17 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 	}
 
 	public void logout() {
-		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
-				this, AppPreferences.SharedPrefAuthentication.name);
+		SharedPreferences pref = CommonFunctions.getSharedPreferences(this,
+				AppPreferences.SharedPrefAuthentication.name);
 		SharedPreferences.Editor edit = pref.edit();
 		edit.putString(AppPreferences.SharedPrefAuthentication.name, "");
 		edit.putString(AppPreferences.SharedPrefAuthentication.user_email, "");
-		edit.putString(AppPreferences.SharedPrefAuthentication.flag,"");
+		edit.putString(AppPreferences.SharedPrefAuthentication.flag, "");
 		edit.commit();
+		if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
+				this)) {
+			stopService(new Intent(this, LocationUpdateService.class));
+		}
 		Intent intent = new Intent(this, AuthenticationActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);

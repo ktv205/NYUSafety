@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.models.AppPreferences;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -55,9 +56,12 @@ public class GcmIntentService extends IntentService {
 		try {
 			array = new JSONArray(msg);
 			JSONObject obj = array.getJSONObject(0);
-			intent.putExtra("coord", new double[] { obj.getDouble("latitude"),
-					obj.getDouble("longitude") });
-			intent.putExtra("userid", obj.getString("userid"));
+			intent.putExtra(
+					AppPreferences.IntentExtras.COORDINATES,
+					new double[] { obj.getDouble("latitude"),
+							obj.getDouble("longitude") });
+			intent.putExtra(AppPreferences.IntentExtras.USERID,
+					obj.getString("userid"));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

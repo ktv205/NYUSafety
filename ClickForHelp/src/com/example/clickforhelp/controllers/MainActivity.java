@@ -53,8 +53,8 @@ public class MainActivity extends FragmentActivity implements
 
 	private ArrayList<Marker> markers;
 	private Context context;
-    private ProgressDialog progressDialog;
-    private int dialogFlag=0;
+	private ProgressDialog progressDialog;
+	private int dialogFlag = 0;
 	private MapFragment mapFragment;
 	private GoogleMap mMap;
 	private Location mLastLocation;
@@ -85,8 +85,10 @@ public class MainActivity extends FragmentActivity implements
 		setContentView(R.layout.test_map);
 		context = getApplicationContext();
 		if (CommonFunctions.isConnected(context)) {
-			progressDialog=new ProgressDialog(this);
-			progressDialog.setTitle("Please wait while we search for your friends near by");
+			progressDialog = new ProgressDialog(this);
+			progressDialog.setTitle("Loading...");
+			progressDialog
+					.setMessage("Please wait while we search for your friends near by");
 			progressDialog.show();
 			// GCM
 			gcmServiceImplementation();
@@ -99,6 +101,8 @@ public class MainActivity extends FragmentActivity implements
 			// markers
 			markers = new ArrayList<Marker>();
 
+		} else {
+			setNoConnectionView();
 		}
 	}
 
@@ -110,8 +114,8 @@ public class MainActivity extends FragmentActivity implements
 		sendLocationIntentService = new Intent(this,
 				LocationUpdateService.class);
 
-		if (new CommonFunctions().isMyServiceRunning(
-				LocationUpdateService.class, this)) {
+		if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
+				this)) {
 
 		} else {
 
@@ -125,8 +129,8 @@ public class MainActivity extends FragmentActivity implements
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				if(dialogFlag==0){
-					if(progressDialog!=null){
+				if (dialogFlag == 0) {
+					if (progressDialog != null) {
 						progressDialog.dismiss();
 						dialogFlag++;
 					}
@@ -136,11 +140,13 @@ public class MainActivity extends FragmentActivity implements
 						markers.get(i).remove();
 					}
 				}
-				// Toast.makeText(MainActivity.this, "received",
-				// Toast.LENGTH_SHORT).show();
-				ArrayList<LocationDetailsModel> locations = intent
-						.getParcelableArrayListExtra("key");
-				fillMap(locations);
+				if (intent.hasExtra(AppPreferences.IntentExtras.NOCONNECTION)) {
+					setNoConnectionView();
+				} else {
+					ArrayList<LocationDetailsModel> locations = intent
+							.getParcelableArrayListExtra(AppPreferences.IntentExtras.LOCATIONS);
+					fillMap(locations);
+				}
 			}
 		};
 		this.registerReceiver(mReceiver, intentFilter);
@@ -202,8 +208,8 @@ public class MainActivity extends FragmentActivity implements
 	protected void onDestroy() {
 		super.onDestroy();
 		// checking user preference for location update
-		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
-				context, AppPreferences.SharedPrefLocationSettings.name);
+		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
+				AppPreferences.SharedPrefLocationSettings.name);
 		final int value = pref.getInt(
 				AppPreferences.SharedPrefLocationSettings.Preference,
 				AppPreferences.SharedPrefLocationSettings.ALWAYS);
@@ -236,12 +242,16 @@ public class MainActivity extends FragmentActivity implements
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
 		if (getIntent() != null) {
-			if (getIntent().hasExtra("coord")) {
+			if (getIntent().hasExtra(AppPreferences.IntentExtras.COORDINATES)) {
 				helpButton.setText("Helping a friend(click here after done)");
-				intent.putExtra("coord",
-						getIntent().getDoubleArrayExtra("coord"));
-				intent.putExtra("userid",
-						getIntent().getExtras().getString("userid"));
+				intent.putExtra(
+						AppPreferences.IntentExtras.COORDINATES,
+						getIntent().getDoubleArrayExtra(
+								AppPreferences.IntentExtras.COORDINATES));
+				intent.putExtra(
+						AppPreferences.IntentExtras.USERID,
+						getIntent().getExtras().getString(
+								AppPreferences.IntentExtras.USERID));
 
 			} else {
 			}
@@ -288,17 +298,17 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public void settingUserPreferenceLocationUpdates(int value) {
-		if (value == 4) {
-			if (new CommonFunctions().isMyServiceRunning(
-					LocationUpdateService.class, this)) {
+		if (value == AppPreferences.SharedPrefLocationSettings.NEVER) {
+			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
+					this)) {
 				stopService(sendLocationIntentService);
 			} else {
 			}
 
-		} else if (value == 3) {
+		} else if (value == AppPreferences.SharedPrefLocationSettings.PLUGGEDIN) {
 			if (checkPluggedIn()) {
 			} else {
-				if (new CommonFunctions().isMyServiceRunning(
+				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, this)) {
 					stopService(sendLocationIntentService);
 				} else {
@@ -306,9 +316,9 @@ public class MainActivity extends FragmentActivity implements
 
 			}
 
-		} else if (value == 2) {
-			if (new CommonFunctions().isMyServiceRunning(
-					LocationUpdateService.class, this)) {
+		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
+			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
+					this)) {
 				if (checkChargingLevel()) {
 					// No need to stop the service
 				} else {
@@ -325,6 +335,23 @@ public class MainActivity extends FragmentActivity implements
 		} else {
 			// already service started
 		}
+	}
+
+	public void setNoConnectionView() {
+		setContentView(R.layout.no_connection);
+		Button button = (Button) findViewById(R.id.no_connection_retry);
+		button.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (CommonFunctions.isConnected(MainActivity.this)) {
+					startActivity(new Intent(MainActivity.this,
+							MainActivity.class));
+					finish();
+				}
+
+			}
+		});
 	}
 
 	// GCM STUFF
@@ -516,11 +543,23 @@ public class MainActivity extends FragmentActivity implements
 
 	public class AskHelpAsyncTask extends
 			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
 
 		@Override
-		protected String doInBackground(RequestParams... params) {
+		protected void onPreExecute() {
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setTitle(AppPreferences.Others.LOADING);
+			dialog.setMessage("Notifying your friends");
+		}
 
+		protected String doInBackground(RequestParams... params) {
 			return new HttpManager().sendUserData(params[0]);
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			dialog.dismiss();
 		}
 
 	}
