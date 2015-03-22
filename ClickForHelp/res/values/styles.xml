@@ -2,8 +2,10 @@
 <!-- For honeycomb and up -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="AppTheme" parent="@android:style/Theme.Holo.Light">
+    <style name="AppTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar">
         <item name="android:actionBarStyle">@style/myTheme.ActionBar</item>
+        <item name="android:popupMenuStyle">@style/myTheme.popupMenuStyle</item>
+        <item name="android:itemTextAppearance">@style/itemTextStyle.AppTheme</item>
     </style>
 
     <style name="myTheme.ActionBar" parent="@android:style/Widget.Holo.Light.ActionBar">
@@ -13,6 +15,14 @@
 
     <style name="myTheme.ActionBar.Text" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="myTheme.popupMenuStyle" parent="@android:style/Widget.PopupWindow">
+        <item name="android:popupBackground">@color/nyupurple</item>
+    </style>
+    <style name="itemTextStyle.AppTheme" parent="@android:style/TextAppearance.Widget.IconMenu.Item">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="buttons">

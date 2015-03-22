@@ -46,7 +46,7 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 					Intent intent = new Intent(SettingsActivity.this,
 							ForgotPasswordActivity.class);
 					intent.putExtra("Extra_Int", 1);
-					startActivity(intent);
+					startActivityForResult(intent,0);
 				} else if (position == 2) {
 					logout();
 				}
@@ -132,6 +132,7 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 		SharedPreferences.Editor edit = pref.edit();
 		edit.putString(AppPreferences.SharedPrefAuthentication.name, "");
 		edit.putString(AppPreferences.SharedPrefAuthentication.user_email, "");
+		edit.putString(AppPreferences.SharedPrefAuthentication.flag,"");
 		edit.commit();
 		Intent intent = new Intent(this, AuthenticationActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

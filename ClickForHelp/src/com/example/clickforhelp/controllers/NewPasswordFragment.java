@@ -1,12 +1,16 @@
 package com.example.clickforhelp.controllers;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -17,6 +21,7 @@ import android.widget.Toast;
 
 public class NewPasswordFragment extends Fragment {
 	View view;
+	private final static String TAG = "NewPasswordFragment";
 	private final static int PASSWORD_EMPTY = 2;
 	private final static int RETYPE_EMPTY = 3;
 	private final static int DONT_MATCH = 4;
@@ -45,10 +50,22 @@ public class NewPasswordFragment extends Fragment {
 				} else {
 					message = "everything looks good";
 
-					String[] paths = { "public", "index.php" };
+					String[] paths = {
+							"public",
+							"index.php",
+							"resetpassword",
+							getActivity()
+									.getSharedPreferences(
+											AppPreferences.SharedPrefAuthentication.name,
+											Context.MODE_PRIVATE)
+									.getString(
+											AppPreferences.SharedPrefAuthentication.user_email,
+											""), password };
 					RequestParams params = CommonFunctions.setParams(
 							ServerVariables.SCHEME, ServerVariables.AUTHORITY,
 							paths);
+					Log.d(TAG, params.getURI());
+					new SendPasswordAsyncTask().execute(params);
 				}
 				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
 						.show();
@@ -85,7 +102,28 @@ public class NewPasswordFragment extends Fragment {
 
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return null;
+			return new HttpManager().sendUserData(params[0]);
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			Log.d(TAG, "result->" + result);
+			super.onPostExecute(result);
+			if (result.contains("1")) {
+				if (getActivity().getIntent() != null) {
+					if (getActivity().getIntent().hasExtra("Extra_Int")) {
+						getActivity().setResult(0);
+						getActivity().finish();
+					} else {
+						startActivity(new Intent(getActivity(),
+								MainActivity.class));
+						getActivity().finishAffinity();
+					}
+				} else {
+					startActivity(new Intent(getActivity(), MainActivity.class));
+					getActivity().finishAffinity();
+				}
+			}
 		}
 
 	}

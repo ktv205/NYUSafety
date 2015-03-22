@@ -31,6 +31,9 @@ public class AuthenticationActivity extends Activity implements
 		setContentView(R.layout.activity_authentication);
 		ActionBar bar = getActionBar();
 		bar.setIcon(R.drawable.nyu_white);
+		Log.d(TAG,getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
+				MODE_PRIVATE).getString(AppPreferences.SharedPrefAuthentication.flag,
+				"")+" flag");
 		if (!getSharedPreferences(AppPreferences.SharedPrefAuthentication.name, MODE_PRIVATE)
 				.getString(AppPreferences.SharedPrefAuthentication.user_email, "").isEmpty()
 				&& getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,

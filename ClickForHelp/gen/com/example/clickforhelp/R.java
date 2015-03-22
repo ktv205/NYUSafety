@@ -385,6 +385,7 @@ containing a value of this type.
         public static final int zOrderOnTop=0x7f010014;
     }
     public static final class color {
+        public static final int black=0x7f070027;
         public static final int blue=0x7f070017;
         public static final int common_action_bar_splitter=0x7f070009;
         /**  Sign-in Button Colors 
@@ -398,8 +399,8 @@ containing a value of this type.
         public static final int common_signin_btn_light_text_disabled=0x7f070006;
         public static final int common_signin_btn_light_text_focused=0x7f070007;
         public static final int common_signin_btn_light_text_pressed=0x7f070005;
-        public static final int common_signin_btn_text_dark=0x7f070027;
-        public static final int common_signin_btn_text_light=0x7f070028;
+        public static final int common_signin_btn_text_dark=0x7f070028;
+        public static final int common_signin_btn_text_light=0x7f070029;
         public static final int darkblue=0x7f07001c;
         public static final int darkgreen=0x7f07001e;
         public static final int darkorange=0x7f07001f;
@@ -432,8 +433,8 @@ containing a value of this type.
         public static final int wallet_hint_foreground_holo_light=0x7f070011;
         public static final int wallet_holo_blue_light=0x7f070015;
         public static final int wallet_link_text_light=0x7f070016;
-        public static final int wallet_primary_text_holo_light=0x7f070029;
-        public static final int wallet_secondary_text_holo_dark=0x7f07002a;
+        public static final int wallet_primary_text_holo_light=0x7f07002a;
+        public static final int wallet_secondary_text_holo_dark=0x7f07002b;
         public static final int white=0x7f070021;
     }
     public static final class dimen {
@@ -721,7 +722,7 @@ containing a value of this type.
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f05000a;
+        public static final int AppBaseTheme=0x7f05000c;
         public static final int AppTheme=0x7f050005;
         public static final int Theme_IAPTheme=0x7f050000;
         public static final int WalletFragmentDefaultButtonTextAppearance=0x7f050003;
@@ -733,10 +734,12 @@ containing a value of this type.
     
          */
         public static final int WalletFragmentDefaultStyle=0x7f050004;
-        public static final int buttons=0x7f050008;
-        public static final int edit_texts=0x7f050009;
+        public static final int buttons=0x7f05000a;
+        public static final int edit_texts=0x7f05000b;
+        public static final int itemTextStyle_AppTheme=0x7f050009;
         public static final int myTheme_ActionBar=0x7f050006;
         public static final int myTheme_ActionBar_Text=0x7f050007;
+        public static final int myTheme_popupMenuStyle=0x7f050008;
     }
     public static final class styleable {
         /** Attributes that can be used with a AdsAttrs.

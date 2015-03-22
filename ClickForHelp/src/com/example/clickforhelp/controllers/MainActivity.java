@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -52,7 +53,8 @@ public class MainActivity extends FragmentActivity implements
 
 	private ArrayList<Marker> markers;
 	private Context context;
-
+    private ProgressDialog progressDialog;
+    private int dialogFlag=0;
 	private MapFragment mapFragment;
 	private GoogleMap mMap;
 	private Location mLastLocation;
@@ -83,7 +85,9 @@ public class MainActivity extends FragmentActivity implements
 		setContentView(R.layout.test_map);
 		context = getApplicationContext();
 		if (CommonFunctions.isConnected(context)) {
-
+			progressDialog=new ProgressDialog(this);
+			progressDialog.setTitle("Please wait while we search for your friends near by");
+			progressDialog.show();
 			// GCM
 			gcmServiceImplementation();
 
@@ -121,6 +125,12 @@ public class MainActivity extends FragmentActivity implements
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
+				if(dialogFlag==0){
+					if(progressDialog!=null){
+						progressDialog.dismiss();
+						dialogFlag++;
+					}
+				}
 				if (markers.size() != 0) {
 					for (int i = 0; i < markers.size(); i++) {
 						markers.get(i).remove();
@@ -147,8 +157,10 @@ public class MainActivity extends FragmentActivity implements
 							"askhelp",
 							getSharedPreferences(
 									AppPreferences.SharedPrefAuthentication.name,
-									MODE_PRIVATE).getString(
-									AppPreferences.SharedPrefAuthentication.user_email, "") };
+									MODE_PRIVATE)
+									.getString(
+											AppPreferences.SharedPrefAuthentication.user_email,
+											"") };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
@@ -176,24 +188,28 @@ public class MainActivity extends FragmentActivity implements
 	protected void onPause() {
 		super.onPause();
 		this.unregisterReceiver(mReceiver);
-		
+
 		alarmManager.cancel(pendingIntent);
-		
-		// checking user preference for location update
-		SharedPreferences pref = new CommonFunctions().getSharedPreferences(context, AppPreferences.SharedPrefLocationSettings.name);
-		final int value = pref.getInt(
-				AppPreferences.SharedPrefLocationSettings.Preference,
-				AppPreferences.SharedPrefLocationSettings.ALWAYS);
-		
-		// starting a service to send location updates to server
-		settingUserPreferenceLocationUpdates(value);
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		
 		mGoogleApiClient.disconnect();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		// checking user preference for location update
+		SharedPreferences pref = new CommonFunctions().getSharedPreferences(
+				context, AppPreferences.SharedPrefLocationSettings.name);
+		final int value = pref.getInt(
+				AppPreferences.SharedPrefLocationSettings.Preference,
+				AppPreferences.SharedPrefLocationSettings.ALWAYS);
+
+		// starting a service to send location updates to server
+		settingUserPreferenceLocationUpdates(value);
 	}
 
 	@Override
@@ -328,7 +344,7 @@ public class MainActivity extends FragmentActivity implements
 	private String getRegistrationId(Context context) {
 		final SharedPreferences prefs = getGCMPreferences(context);
 		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-		if (registrationId.isEmpty()) {	
+		if (registrationId.isEmpty()) {
 			return "";
 		}
 		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION,
@@ -383,9 +399,11 @@ public class MainActivity extends FragmentActivity implements
 				"public",
 				"index.php",
 				"updategcm",
-				getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
+				getSharedPreferences(
+						AppPreferences.SharedPrefAuthentication.name,
 						MODE_PRIVATE).getString(
-						AppPreferences.SharedPrefAuthentication.user_email, ""), regid };
+						AppPreferences.SharedPrefAuthentication.user_email, ""),
+				regid };
 		RequestParams params = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, values);

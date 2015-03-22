@@ -17,6 +17,7 @@
     <item name="violet" type="color">#8F5E99</item>
     <item name="ghostwhite" type="color">#7D7F88</item>
     <item name="nyupurple" type="color">#57068c</item>
+    <item name="black" type="color">#000000</item>
 
     <integer-array name="androidcolors">
         <item>@color/blue</item>
@@ -34,6 +35,7 @@
         <item>@color/violet</item>
         <item>@color/ghostwhite</item>
         <item>@color/nyupurple</item>
+        <item>@color/black</item>
     </integer-array>
 
 </resources>

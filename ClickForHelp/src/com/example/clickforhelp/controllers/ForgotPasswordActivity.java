@@ -27,11 +27,27 @@ public class ForgotPasswordActivity extends Activity implements
 		fragmentManager = getFragmentManager();
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = getFragmentManager().findFragmentByTag(EMAILTAG);
-		if (fragment == null) {
+		Fragment newPasswordFragment = getFragmentManager().findFragmentByTag(
+				NEWPASSWORDTAG);
+		if (getIntent() != null) {
+			if (getIntent().hasExtra("Extra_Int")) {
+				if (newPasswordFragment == null) {
+					fragmentTransaction.replace(R.id.forgotpassword_linear,
+							new NewPasswordFragment(), NEWPASSWORDTAG).commit();
+				}
+			} else {
+				if (fragment == null) {
+					Log.d(TAG, "email fragment is null in onCreate");
+					fragmentTransaction.replace(R.id.forgotpassword_linear,
+							new EmailFragment(), EMAILTAG).commit();
+				}
+			}
+		} else {
 			Log.d(TAG, "email fragment is null in onCreate");
 			fragmentTransaction.replace(R.id.forgotpassword_linear,
 					new EmailFragment(), EMAILTAG).commit();
 		}
+
 	}
 
 	@Override
@@ -39,12 +55,12 @@ public class ForgotPasswordActivity extends Activity implements
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = fragmentManager.findFragmentByTag(VERFICATIONTAG);
 		if (fragment != null) {
-			fragmentTransaction.replace(R.id.forgotpassword_linear,
-					fragment, VERFICATIONTAG).commit();
+			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+					VERFICATIONTAG).commit();
 		} else {
 			fragment = new EmailVerificationFragment();
-			fragmentTransaction.replace(R.id.forgotpassword_linear,
-					fragment, VERFICATIONTAG).commit();
+			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+					VERFICATIONTAG).commit();
 		}
 		Bundle bundle = new Bundle();
 		bundle.putBoolean("new password", true);
@@ -57,12 +73,12 @@ public class ForgotPasswordActivity extends Activity implements
 		fragmentTransaction = fragmentManager.beginTransaction();
 		Fragment fragment = fragmentManager.findFragmentByTag(NEWPASSWORDTAG);
 		if (fragment != null) {
-			fragmentTransaction.replace(R.id.forgotpassword_linear,
-					fragment, NEWPASSWORDTAG).commit();
+			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+					NEWPASSWORDTAG).commit();
 		} else {
 			fragment = new NewPasswordFragment();
-			fragmentTransaction.replace(R.id.forgotpassword_linear,
-					fragment, NEWPASSWORDTAG).commit();
+			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+					NEWPASSWORDTAG).commit();
 		}
 	}
 }
