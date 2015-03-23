@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import android.app.ActionBar;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
@@ -35,7 +36,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
@@ -49,7 +49,7 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
-	// private final static String TAG = "MainActivity";
+	//private final static String TAG = "MainActivity";
 
 	private ArrayList<Marker> markers;
 	private Context context;
@@ -80,32 +80,55 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// Log.d(TAG, "in onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.test_map);
+		overridePendingTransition(0, 0);
 		context = getApplicationContext();
-		if (CommonFunctions.isConnected(context)) {
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setTitle("Loading...");
-			progressDialog
-					.setMessage("Please wait while we search for your friends near by");
-			progressDialog.show();
-			// GCM
-			gcmServiceImplementation();
-
-			// location broadcast receiver
-			intentFilter = new IntentFilter(
-					"com.example.clickforhelp.action_send");
-			intentFilter.addCategory("com.example.clickforhelp");
-
-			// markers
-			markers = new ArrayList<Marker>();
-
+		ActionBar bar = getActionBar();
+		bar.setIcon(R.drawable.nyu_white);
+		if (getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
+				MODE_PRIVATE).getString(
+				AppPreferences.SharedPrefAuthentication.user_email, "")
+				.isEmpty()
+				&& !getSharedPreferences(
+						AppPreferences.SharedPrefAuthentication.name,
+						MODE_PRIVATE).getString(
+						AppPreferences.SharedPrefAuthentication.flag, "")
+						.equals("1")) {
+			startActivity(new Intent(this, AuthenticationActivity.class));
+			finish();
 		} else {
-			setNoConnectionView();
+			if (CommonFunctions.isConnected(context)) {
+				progressDialog = new ProgressDialog(this);
+				progressDialog.setTitle("Loading...");
+				progressDialog
+						.setMessage("Please wait while we search for your friends near by");
+				progressDialog.show();
+				// GCM
+				gcmServiceImplementation();
+
+				// location broadcast receiver
+				intentFilter = new IntentFilter(
+						"com.example.clickforhelp.action_send");
+				intentFilter.addCategory("com.example.clickforhelp");
+
+				// markers
+				markers = new ArrayList<Marker>();
+
+			} else {
+				setNoConnectionView();
+			}
 		}
 	}
-
+    @Override
+    public void overridePendingTransition(int enterAnim, int exitAnim) {
+    	super.overridePendingTransition(enterAnim, exitAnim);
+    }
+    @Override
+    public void finish() {
+    	overridePendingTransition(0, 0);
+    	super.finish();
+    }
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -207,15 +230,8 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		// checking user preference for location update
-		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
-				AppPreferences.SharedPrefLocationSettings.name);
-		final int value = pref.getInt(
-				AppPreferences.SharedPrefLocationSettings.Preference,
-				AppPreferences.SharedPrefLocationSettings.ALWAYS);
-
 		// starting a service to send location updates to server
-		settingUserPreferenceLocationUpdates(value);
+		CommonFunctions.settingUserPreferenceLocationUpdates(context);
 	}
 
 	@Override
@@ -267,74 +283,6 @@ public class MainActivity extends FragmentActivity implements
 		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
 				System.currentTimeMillis() + timeForAlarm, timeForAlarm,
 				pendingIntent);
-	}
-
-	public boolean checkPluggedIn() {
-		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-		Intent batteryStatus = context.registerReceiver(null, ifilter);
-		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-		boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
-		if (isCharging) {
-			int chargePlug = batteryStatus.getIntExtra(
-					BatteryManager.EXTRA_PLUGGED, -1);
-			isCharging = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-		} else {
-			isCharging = status == BatteryManager.BATTERY_STATUS_FULL;
-		}
-
-		return isCharging;
-	}
-
-	public boolean checkChargingLevel() {
-		boolean level = false;
-		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-		Intent batteryStatus = context.registerReceiver(null, ifilter);
-		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
-		if (status == BatteryManager.BATTERY_HEALTH_GOOD) {
-			level = true;
-		}
-		return level;
-
-	}
-
-	public void settingUserPreferenceLocationUpdates(int value) {
-		if (value == AppPreferences.SharedPrefLocationSettings.NEVER) {
-			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-					this)) {
-				stopService(sendLocationIntentService);
-			} else {
-			}
-
-		} else if (value == AppPreferences.SharedPrefLocationSettings.PLUGGEDIN) {
-			if (checkPluggedIn()) {
-			} else {
-				if (CommonFunctions.isMyServiceRunning(
-						LocationUpdateService.class, this)) {
-					stopService(sendLocationIntentService);
-				} else {
-				}
-
-			}
-
-		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
-			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-					this)) {
-				if (checkChargingLevel()) {
-					// No need to stop the service
-				} else {
-					stopService(sendLocationIntentService);
-				}
-
-			} else {
-				if (checkChargingLevel()) {
-					startService(sendLocationIntentService);
-				} else {
-					// already service started
-				}
-			}
-		} else {
-			// already service started
-		}
 	}
 
 	public void setNoConnectionView() {

@@ -6,7 +6,6 @@ import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
 import com.example.clickforhelp.controllers.WelcomeFragment.OnClickAuthentication;
 import com.example.clickforhelp.models.AppPreferences;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -32,22 +31,7 @@ public class AuthenticationActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
-		ActionBar bar = getActionBar();
-		bar.setIcon(R.drawable.nyu_white);
 		if (CommonFunctions.isConnected(this)) {
-			if (!getSharedPreferences(
-					AppPreferences.SharedPrefAuthentication.name, MODE_PRIVATE)
-					.getString(
-							AppPreferences.SharedPrefAuthentication.user_email,
-							"").isEmpty()
-					&& getSharedPreferences(
-							AppPreferences.SharedPrefAuthentication.name,
-							MODE_PRIVATE).getString(
-							AppPreferences.SharedPrefAuthentication.flag, "")
-							.equals("1")) {
-				startActivity(new Intent(this, MainActivity.class));
-				finish();
-			}
 			fragmentManager = getFragmentManager();
 			fragmentTransaction = fragmentManager.beginTransaction();
 			Fragment fragment = getFragmentManager().findFragmentByTag(
@@ -148,29 +132,43 @@ public class AuthenticationActivity extends Activity implements
 
 	@Override
 	public void onBackPressed() {
-		Fragment loginFragment = fragmentManager.findFragmentByTag(LOGINTAG);
-		Fragment signupFragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
-		Fragment verfiyFragment = fragmentManager.findFragmentByTag(VERIFYTAG);
-		if ((loginFragment != null && loginFragment.isVisible())
-				|| (signupFragment != null && signupFragment.isVisible())) {
-			fragmentTransaction = fragmentManager.beginTransaction();
-			Fragment fragment = fragmentManager.findFragmentByTag(WELCOMETAG);
-			if (fragment != null) {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, WELCOMETAG).commit();
+		if (fragmentManager != null) {
+			Fragment loginFragment = fragmentManager
+					.findFragmentByTag(LOGINTAG);
+			Fragment signupFragment = fragmentManager
+					.findFragmentByTag(SIGNUPTAG);
+			Fragment verfiyFragment = fragmentManager
+					.findFragmentByTag(VERIFYTAG);
+			if ((loginFragment != null && loginFragment.isVisible())
+					|| (signupFragment != null && signupFragment.isVisible())) {
+				fragmentTransaction = fragmentManager.beginTransaction();
+				Fragment fragment = fragmentManager
+						.findFragmentByTag(WELCOMETAG);
+				if (fragment != null) {
+					fragmentTransaction.replace(
+							R.id.authentication_parent0_linear, fragment,
+							WELCOMETAG).commit();
+				} else {
+					fragmentTransaction.replace(
+							R.id.authentication_parent0_linear,
+							new WelcomeFragment(), WELCOMETAG).commit();
+				}
+			} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
+				fragmentTransaction = fragmentManager.beginTransaction();
+				Fragment fragment = fragmentManager
+						.findFragmentByTag(SIGNUPTAG);
+				if (fragment != null) {
+					fragmentTransaction.replace(
+							R.id.authentication_parent0_linear, fragment,
+							SIGNUPTAG).commit();
+				} else {
+					fragmentTransaction.replace(
+							R.id.authentication_parent0_linear,
+							new SignupFragment(), SIGNUPTAG).commit();
+				}
+
 			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
-						new WelcomeFragment(), WELCOMETAG).commit();
-			}
-		} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
-			fragmentTransaction = fragmentManager.beginTransaction();
-			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
-			if (fragment != null) {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, SIGNUPTAG).commit();
-			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
-						new SignupFragment(), SIGNUPTAG).commit();
+				super.onBackPressed();
 			}
 
 		} else {

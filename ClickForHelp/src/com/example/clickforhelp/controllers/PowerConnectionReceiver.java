@@ -1,11 +1,8 @@
 package com.example.clickforhelp.controllers;
 
-import com.example.clickforhelp.models.AppPreferences;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.widget.Toast;
 
@@ -21,11 +18,7 @@ public class PowerConnectionReceiver extends BroadcastReceiver {
 		int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
 		boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 
-		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
-				AppPreferences.SharedPrefLocationSettings.name);
-		int value = pref.getInt(
-				AppPreferences.SharedPrefLocationSettings.Preference,
-				AppPreferences.SharedPrefLocationSettings.ALWAYS);
+		int value = CommonFunctions.userLocationUpdatePreference(context);
 		if (value == 1) {
 
 		} else if (value == 3) {

@@ -5,7 +5,6 @@ import com.example.clickforhelp.models.AppPreferences;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.widget.Toast;
 
@@ -17,11 +16,7 @@ public class BatteryLevelReceiver extends BroadcastReceiver {
 		Toast.makeText(context, "battery level triggered", Toast.LENGTH_LONG)
 				.show();
 		int status = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
-		SharedPreferences pref = CommonFunctions.getSharedPreferences(context,
-				AppPreferences.SharedPrefLocationSettings.name);
-		int value = pref.getInt(
-				AppPreferences.SharedPrefLocationSettings.Preference,
-				AppPreferences.SharedPrefLocationSettings.ALWAYS);
+		int value = CommonFunctions.userLocationUpdatePreference(context);
 		if (value == AppPreferences.SharedPrefLocationSettings.ALWAYS) {
 
 		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
