@@ -151,7 +151,12 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 	@Override
 	public void setSummary(int flag) {
 		text2.setText(locationValues[flag]);
-
+	}
+	
+	@Override
+	public Intent getParentActivityIntent() {
+		// TODO Auto-generated method stub
+		return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	}
 
 }

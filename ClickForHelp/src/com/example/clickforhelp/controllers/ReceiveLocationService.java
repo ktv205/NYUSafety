@@ -58,7 +58,7 @@ public class ReceiveLocationService extends Service {
 				} else {
 					Intent LocationIntent = new Intent(
 							"com.example.clickforhelp.action_send");
-					intent.putExtra(AppPreferences.IntentExtras.NOCONNECTION, true);
+					LocationIntent.putExtra(AppPreferences.IntentExtras.NOCONNECTION, true);
 					sendBroadcast(LocationIntent);
 				}
 			}

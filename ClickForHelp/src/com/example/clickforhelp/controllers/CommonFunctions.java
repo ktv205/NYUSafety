@@ -25,8 +25,7 @@ public class CommonFunctions {
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = manager.getActiveNetworkInfo();
 		if (info != null && info.isConnected()) {
-
-			return isOnline();
+			return true;
 		} else {
 			return false;
 		}

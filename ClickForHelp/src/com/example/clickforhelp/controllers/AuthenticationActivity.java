@@ -6,6 +6,7 @@ import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
 import com.example.clickforhelp.controllers.WelcomeFragment.OnClickAuthentication;
 import com.example.clickforhelp.models.AppPreferences;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -31,6 +32,9 @@ public class AuthenticationActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
+		ActionBar bar=getActionBar();
+		bar.setDisplayHomeAsUpEnabled(true);
+		bar.setIcon(R.drawable.nyu_white_small);
 		if (CommonFunctions.isConnected(this)) {
 			fragmentManager = getFragmentManager();
 			fragmentTransaction = fragmentManager.beginTransaction();

@@ -23,7 +23,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.app.ActionBar;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
@@ -49,12 +48,10 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity implements
 		OnMapReadyCallback, OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
-	//private final static String TAG = "MainActivity";
+	// private final static String TAG = "MainActivity";
 
 	private ArrayList<Marker> markers;
 	private Context context;
-	private ProgressDialog progressDialog;
-	private int dialogFlag = 0;
 	private MapFragment mapFragment;
 	private GoogleMap mMap;
 	private Location mLastLocation;
@@ -82,149 +79,125 @@ public class MainActivity extends FragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.test_map);
-		overridePendingTransition(0, 0);
 		context = getApplicationContext();
-		ActionBar bar = getActionBar();
-		bar.setIcon(R.drawable.nyu_white);
-		if (getSharedPreferences(AppPreferences.SharedPrefAuthentication.name,
-				MODE_PRIVATE).getString(
-				AppPreferences.SharedPrefAuthentication.user_email, "")
-				.isEmpty()
-				&& !getSharedPreferences(
-						AppPreferences.SharedPrefAuthentication.name,
-						MODE_PRIVATE).getString(
-						AppPreferences.SharedPrefAuthentication.flag, "")
-						.equals("1")) {
-			startActivity(new Intent(this, AuthenticationActivity.class));
-			finish();
+		// ActionBar bar=getActionBar();
+		// bar.setDisplayShowHomeEnabled(true);
+		// bar.setIcon(R.drawable.nyu_white_small);
+		if (CommonFunctions.isConnected(context)) {
+			// GCM
+			gcmServiceImplementation();
+			// location broadcast receiver
+			intentFilter = new IntentFilter(
+					"com.example.clickforhelp.action_send");
+			intentFilter.addCategory("com.example.clickforhelp");
+
+			// markers
+			markers = new ArrayList<Marker>();
+
 		} else {
-			if (CommonFunctions.isConnected(context)) {
-				progressDialog = new ProgressDialog(this);
-				progressDialog.setTitle("Loading...");
-				progressDialog
-						.setMessage("Please wait while we search for your friends near by");
-				progressDialog.show();
-				// GCM
-				gcmServiceImplementation();
-
-				// location broadcast receiver
-				intentFilter = new IntentFilter(
-						"com.example.clickforhelp.action_send");
-				intentFilter.addCategory("com.example.clickforhelp");
-
-				// markers
-				markers = new ArrayList<Marker>();
-
-			} else {
-				setNoConnectionView();
-			}
+			setNoConnectionView();
 		}
 	}
-    @Override
-    public void overridePendingTransition(int enterAnim, int exitAnim) {
-    	super.overridePendingTransition(enterAnim, exitAnim);
-    }
-    @Override
-    public void finish() {
-    	overridePendingTransition(0, 0);
-    	super.finish();
-    }
+
 	@Override
 	protected void onResume() {
 		super.onResume();
+		if (CommonFunctions.isConnected(context)) {
+			// intent for starting location update service
+			sendLocationIntentService = new Intent(this,
+					LocationUpdateService.class);
 
-		// intent for starting location update service
-		sendLocationIntentService = new Intent(this,
-				LocationUpdateService.class);
+			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
+					this)) {
 
-		if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-				this)) {
+			} else {
 
-		} else {
+				startService(sendLocationIntentService);
+			}
 
-			startService(sendLocationIntentService);
+			// map stuff
+			initializeMapFields();
+
+			// anonymous broadcastReceiver for the location of friends
+			mReceiver = new BroadcastReceiver() {
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					if (markers.size() != 0) {
+						for (int i = 0; i < markers.size(); i++) {
+							markers.get(i).remove();
+						}
+					}
+					if (intent
+							.hasExtra(AppPreferences.IntentExtras.NOCONNECTION)) {
+						setNoConnectionView();
+					} else {
+						ArrayList<LocationDetailsModel> locations = intent
+								.getParcelableArrayListExtra(AppPreferences.IntentExtras.LOCATIONS);
+						fillMap(locations);
+					}
+				}
+			};
+			this.registerReceiver(mReceiver, intentFilter);
+
+			// help button and accessing AskHelpAsyncTask
+			helpButton = (Button) findViewById(R.id.button_help);
+			helpButton.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					if (helpButton.getText().toString().equals("Ask For Help")) {
+						String[] values = {
+								"public",
+								"index.php",
+								"askhelp",
+								getSharedPreferences(
+										AppPreferences.SharedPrefAuthentication.name,
+										MODE_PRIVATE)
+										.getString(
+												AppPreferences.SharedPrefAuthentication.user_email,
+												"") };
+						RequestParams params = CommonFunctions.setParams(
+								AppPreferences.ServerVariables.SCHEME,
+								AppPreferences.ServerVariables.AUTHORITY,
+								values);
+						new AskHelpAsyncTask().execute(params);
+						helpButton
+								.setText("Asked for help(click here when done)");
+					} else {
+						helpButton.setText("Ask For Help");
+						if (getIntent() != null) {
+							getIntent().setData(null);
+							setIntent(null);
+						}
+						alarmManager.cancel(pendingIntent);
+						setLocationReceivingAlarm();
+					}
+
+				}
+
+			});
+
+			// setting location alarm
+			setLocationReceivingAlarm();
 		}
-
-		// map stuff
-		initializeMapFields();
-
-		// anonymous broadcastReceiver for the location of friends
-		mReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (dialogFlag == 0) {
-					if (progressDialog != null) {
-						progressDialog.dismiss();
-						dialogFlag++;
-					}
-				}
-				if (markers.size() != 0) {
-					for (int i = 0; i < markers.size(); i++) {
-						markers.get(i).remove();
-					}
-				}
-				if (intent.hasExtra(AppPreferences.IntentExtras.NOCONNECTION)) {
-					setNoConnectionView();
-				} else {
-					ArrayList<LocationDetailsModel> locations = intent
-							.getParcelableArrayListExtra(AppPreferences.IntentExtras.LOCATIONS);
-					fillMap(locations);
-				}
-			}
-		};
-		this.registerReceiver(mReceiver, intentFilter);
-
-		// help button and accessing AskHelpAsyncTask
-		helpButton = (Button) findViewById(R.id.button_help);
-		helpButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (helpButton.getText().toString().equals("Ask For Help")) {
-					String[] values = {
-							"public",
-							"index.php",
-							"askhelp",
-							getSharedPreferences(
-									AppPreferences.SharedPrefAuthentication.name,
-									MODE_PRIVATE)
-									.getString(
-											AppPreferences.SharedPrefAuthentication.user_email,
-											"") };
-					RequestParams params = CommonFunctions.setParams(
-							AppPreferences.ServerVariables.SCHEME,
-							AppPreferences.ServerVariables.AUTHORITY, values);
-					new AskHelpAsyncTask().execute(params);
-					helpButton.setText("Asked for help(click here when done)");
-				} else {
-					helpButton.setText("Ask For Help");
-					if (getIntent() != null) {
-						getIntent().setData(null);
-						setIntent(null);
-					}
-					alarmManager.cancel(pendingIntent);
-					setLocationReceivingAlarm();
-				}
-
-			}
-
-		});
-
-		// setting location alarm
-		setLocationReceivingAlarm();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		this.unregisterReceiver(mReceiver);
-
-		alarmManager.cancel(pendingIntent);
+		if (mReceiver != null) {
+			this.unregisterReceiver(mReceiver);
+		}
+		if (pendingIntent != null) {
+			alarmManager.cancel(pendingIntent);
+		}
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		mGoogleApiClient.disconnect();
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.disconnect();
+		}
 	}
 
 	@Override
@@ -258,7 +231,8 @@ public class MainActivity extends FragmentActivity implements
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
 		if (getIntent() != null) {
-			if (getIntent().hasExtra(AppPreferences.IntentExtras.COORDINATES)) {
+			if (getIntent().hasExtra(AppPreferences.IntentExtras.COORDINATES)
+					&& getIntent().hasExtra(AppPreferences.IntentExtras.USERID)) {
 				helpButton.setText("Helping a friend(click here after done)");
 				intent.putExtra(
 						AppPreferences.IntentExtras.COORDINATES,
@@ -443,9 +417,17 @@ public class MainActivity extends FragmentActivity implements
 				.getLastLocation(mGoogleApiClient);
 		if (mLastLocation != null) {
 			// Log.d(TAG, "mLastLocation is not null");
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
+			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
 					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
 					16));
+			if (getIntent() != null) {
+				if (getIntent().hasExtra(AppPreferences.IntentExtras.LOCATIONS)) {
+					ArrayList<LocationDetailsModel> locations = getIntent()
+							.getParcelableArrayListExtra(
+									AppPreferences.IntentExtras.LOCATIONS);
+					fillMap(locations);
+				}
+			}
 		} else {
 		}
 

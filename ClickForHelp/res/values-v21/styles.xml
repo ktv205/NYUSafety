@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings activity theme. -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+       <item name="android:colorPrimary">@color/nyupurple</item>
+    <!--   darker variant for the status bar and contextual app bars -->
+   <item name="android:colorPrimaryDark">@color/dark_purle</item>
+   <item name="android:itemBackground">@color/nyupurple</item>
+    <item name="android:itemTextAppearance">@style/itemTextStyle.AppTheme</item>
+    <item name="android:icon">@drawable/nyu_white</item>
+   
+    </style>
+    
+    <style name="itemTextStyle.AppTheme" parent="@android:style/TextAppearance.Widget.IconMenu.Item">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+</resources>
