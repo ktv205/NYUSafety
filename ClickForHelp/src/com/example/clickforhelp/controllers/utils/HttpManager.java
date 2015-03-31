@@ -9,18 +9,17 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-import android.util.Log;
 
 import com.example.clickforhelp.models.RequestParams;
 
 public class HttpManager {
-	private final static String TAG = "HttpManager";
+	//private final static String TAG = "HttpManager";
 	public String sendUserData(RequestParams params) {
 		URL url = null;
 		try {
 			if (params.getMethod() == "GET") {
 				url = new URL(params.getURI());
-				Log.d(TAG,params.getURI());
+				//Log.d(TAG,params.getURI());
 			} else {
 				url = new URL(params.getURI());
 			}

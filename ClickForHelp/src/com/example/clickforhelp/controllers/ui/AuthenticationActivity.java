@@ -17,14 +17,13 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class AuthenticationActivity extends Activity implements
 		OnClickAuthentication, LoginInterface, SignupInterface {
-	private final static String TAG = "AuthenticationActivity";
+	//private final static String TAG = "AuthenticationActivity";
 	private final static String WELCOMETAG = "WelcomeFragmentTAG";
 	private final static String LOGINTAG = "LoginFragmentTAG";
 	private final static String SIGNUPTAG = "SignupFragmentTAG";
@@ -47,7 +46,7 @@ public class AuthenticationActivity extends Activity implements
 					SIGNUPTAG);
 			if (fragment == null
 					&& (loginFragment == null && signupFragment == null)) {
-				Log.d(TAG, "welcome fragment is null in onCreate");
+				//Log.d(TAG, "welcome fragment is null in onCreate");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
@@ -124,7 +123,7 @@ public class AuthenticationActivity extends Activity implements
 		} else if (flag == AppPreferences.Flags.SIGNUP_FLAG) {
 			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
 			if (fragment != null) {
-				Log.d(TAG, "fragment is not null");
+				//Log.d(TAG, "fragment is not null");
 				fragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, SIGNUPTAG);
 			} else {

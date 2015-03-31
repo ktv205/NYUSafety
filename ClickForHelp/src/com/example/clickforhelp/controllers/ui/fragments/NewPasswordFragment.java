@@ -16,7 +16,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,7 +26,7 @@ import android.widget.Toast;
 
 public class NewPasswordFragment extends Fragment {
 	View view;
-	private final static String TAG = "NewPasswordFragment";
+	//private final static String TAG = "NewPasswordFragment";
 	private final static int PASSWORD_EMPTY = 2;
 	private final static int RETYPE_EMPTY = 3;
 	private final static int DONT_MATCH = 4;
@@ -78,7 +77,6 @@ public class NewPasswordFragment extends Fragment {
 					RequestParams params = CommonFunctions.setParams(
 							ServerVariables.SCHEME, ServerVariables.AUTHORITY,
 							paths);
-					Log.d(TAG, params.getURI());
 					new SendPasswordAsyncTask().execute(params);
 				}
 				if (message != null) {

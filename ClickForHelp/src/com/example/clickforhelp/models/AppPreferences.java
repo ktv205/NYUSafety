@@ -21,6 +21,8 @@ public class AppPreferences {
 		public final static String LOCATIONS = "locations";
 		public final static String NOCONNECTION = "no connections";
 		public final static String CHANGE="change password";
+		public final static String HIGH_ACCURACY="high_accuracy";
+		public final static String BALANCED_POWER="balanced_power";
 	}
 
 	public static abstract class SharedPrefAuthentication {
@@ -41,6 +43,10 @@ public class AppPreferences {
 		public final static int ALWAYS = 1;
 		public final static int RECOMENDED = 2;
 		public final static int PLUGGEDIN = 3;
+	}
+	public static abstract class SharedPrefActivityRecognition{
+		public final static String name="ActivityRecognition";
+		public final static String enabled="enabled";
 	}
 
 	public static abstract class ServerVariables {

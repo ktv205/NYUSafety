@@ -18,16 +18,21 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 public class LocationUpdateService extends Service implements
 		OnConnectionFailedListener, ConnectionCallbacks, LocationListener {
-	private static final String TAG = "LocationUpdateService";
+	//private static final String TAG = "LocationUpdateService";
 	private GoogleApiClient mGoogleApiClient;
 	private LocationRequest mLocationRequest;
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
+	public boolean high_accuracy = false;
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent != null) {
+			if (intent.hasExtra(AppPreferences.IntentExtras.HIGH_ACCURACY)) {
+				high_accuracy = true;
+			}
+		}
 		buildGoogleApiClient();
 		return START_STICKY;
 	}
@@ -50,7 +55,14 @@ public class LocationUpdateService extends Service implements
 		mLocationRequest = new LocationRequest();
 		mLocationRequest.setInterval(10000);
 		mLocationRequest.setFastestInterval(5000);
-		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		if (high_accuracy) {
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		} else {
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+		}
+
 	}
 
 	@Override
@@ -77,7 +89,7 @@ public class LocationUpdateService extends Service implements
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG,"mGoogleClientDisconnected");
+		// Log.d(TAG, "mGoogleClientDisconnected");
 		mGoogleApiClient.disconnect();
 	}
 
@@ -116,7 +128,7 @@ public class LocationUpdateService extends Service implements
 
 		@Override
 		protected void onPostExecute(String result) {
-			Log.d(TAG,"in onPostexecute locationupdate");
+			// Log.d(TAG, "in onPostexecute locationupdate");
 			super.onPostExecute(result);
 		}
 

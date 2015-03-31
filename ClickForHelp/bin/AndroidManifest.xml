@@ -119,7 +119,7 @@
             android:name="com.example.clickforhelp.controllers.services.ReceiveLocationService"
             android:exported="false" >
         </service>
-        <service android:name=".ActivityRecognitionService"></service>
+        <service android:name="com.example.clickforhelp.controllers.services.ActivityRecognitionService"></service>
 
         <meta-data
             android:name="com.google.android.gms.version"

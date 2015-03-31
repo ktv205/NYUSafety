@@ -15,7 +15,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -27,7 +26,7 @@ public class ForgotPasswordActivity extends Activity implements
 	private final static String EMAILTAG = "EmailFragment";
 	private final static String VERFICATIONTAG = "EmailVerficationTAG";
 	private final static String NEWPASSWORDTAG = "NEWPASSWORDTAG";
-	private final static String TAG = "ForgotPasswordActivity";
+	//private final static String TAG = "ForgotPasswordActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +53,7 @@ public class ForgotPasswordActivity extends Activity implements
 					}
 				}
 			} else {
-				Log.d(TAG, "email fragment is null in onCreate");
+				//Log.d(TAG, "email fragment is null in onCreate");
 				fragmentTransaction.replace(R.id.forgotpassword_linear,
 						new EmailFragment(), EMAILTAG).commit();
 			}

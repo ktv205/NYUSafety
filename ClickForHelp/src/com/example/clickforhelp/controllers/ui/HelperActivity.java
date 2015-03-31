@@ -60,7 +60,7 @@ public class HelperActivity extends Activity {
 			if (CommonFunctions.isConnected(this)) {
 				new GetLocationOfPeers().execute(params);
 			} else {
-				// show something useful regarding no connection here
+
 			}
 		}
 
@@ -68,7 +68,6 @@ public class HelperActivity extends Activity {
 
 	@Override
 	public void overridePendingTransition(int enterAnim, int exitAnim) {
-		// TODO Auto-generated method stub
 		super.overridePendingTransition(enterAnim, exitAnim);
 	}
 
@@ -79,7 +78,6 @@ public class HelperActivity extends Activity {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return null;
@@ -113,7 +111,6 @@ public class HelperActivity extends Activity {
 					Thread.sleep(4000);
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return new HttpManager().sendUserData(params[0]);

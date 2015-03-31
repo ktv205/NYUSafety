@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.controllers.services.ActivityRecognitionService;
 import com.example.clickforhelp.controllers.services.LocationUpdateService;
 import com.example.clickforhelp.controllers.services.ReceiveLocationService;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
@@ -16,10 +17,17 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -41,7 +49,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,60 +58,65 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnMapReadyCallback,
 		OnConnectionFailedListener,
-		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks {
+		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks,
+		LocationListener, LocationSource {
 	// private final static String TAG = "MainActivity";
-
 	private ArrayList<Marker> markers;
-	private Context context;
-	private MapFragment mapFragment;
+	private Context mContext;
+	private MapFragment mMapFragment;
 	private GoogleMap mMap;
 	private Location mLastLocation;
 	private GoogleApiClient mGoogleApiClient;
+	private LocationRequest mLocationRequest;
 
 	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 	public static final String EXTRA_MESSAGE = "message";
 	public static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
 
-	private IntentFilter intentFilter;
+	private IntentFilter mIntentFilter;
 	private BroadcastReceiver mReceiver;
-	private Intent sendLocationIntentService;
+	private Intent mSendLocationIntentService;
 
 	String SENDER_ID = "947264921784";
 	TextView mDisplay;
-	GoogleCloudMessaging gcm;
-	AtomicInteger msgId = new AtomicInteger();
-	String regid;
-	AlarmManager alarmManager;
-	PendingIntent pendingIntent;
-	Button helpButton;
+	GoogleCloudMessaging mGcm;
+	AtomicInteger mMsgId = new AtomicInteger();
+	String mRegid;
+	AlarmManager mAlarmManager;
+	PendingIntent mPendingIntent;
+	Button mHelpButton;
 
 	private static final String ASK_HELP = "Ask For Help";
 	private static final String ASKED_HELP = "Asked For Help(click here after receiving help)";
 	private static final String HELPING = "Helping a Friend(click here after helping)";
 	protected static final String TAG = "MainActivity";
 
-	Animation animation = null;
+	Animation mAnimation = null;
+
+	OnLocationChangedListener mListener;
+
+	boolean highAccuracy = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.test_map);
-		context = getApplicationContext();
+		mContext = getApplicationContext();
 		buttonAnimation();
-		if (CommonFunctions.isConnected(context)) {
+		if (CommonFunctions.isConnected(mContext)) {
 			// GCM
 			gcmServiceImplementation();
 
 			// location broadcast receiver
-			intentFilter = new IntentFilter(
+			mIntentFilter = new IntentFilter(
 					"com.example.clickforhelp.action_send");
-			intentFilter.addCategory("com.example.clickforhelp");
-
+			mIntentFilter.addCategory("com.example.clickforhelp");
+			
+			
 			// markers
 			markers = new ArrayList<Marker>();
 
@@ -116,16 +128,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (CommonFunctions.isConnected(context)) {
+		if (CommonFunctions.isConnected(mContext)) {
 			// intent for starting location update service
-			sendLocationIntentService = new Intent(this,
+			mSendLocationIntentService = new Intent(this,
 					LocationUpdateService.class);
 			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
 					this)) {
 
 			} else {
 
-				startService(sendLocationIntentService);
+				startService(mSendLocationIntentService);
 			}
 
 			// map stuff
@@ -151,16 +163,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 					}
 				}
 			};
-			this.registerReceiver(mReceiver, intentFilter);
+			this.registerReceiver(mReceiver, mIntentFilter);
 
 			// help button and accessing AskHelpAsyncTask
-			helpButton = (Button) findViewById(R.id.button_help);
-			helpButton.setOnClickListener(new OnClickListener() {
+			mHelpButton = (Button) findViewById(R.id.button_help);
+			mHelpButton.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					if (helpButton.getText().toString().equals(ASK_HELP)) {
-						helpButton.startAnimation(animation);
-						Log.d(TAG, "asked for help");
+					if (mHelpButton.getText().toString().equals(ASK_HELP)) {
+						mHelpButton.startAnimation(mAnimation);
+						// Log.d(TAG, "asked for help");
 						String[] values = {
 								"public",
 								"index.php",
@@ -175,12 +187,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 								AppPreferences.ServerVariables.SCHEME,
 								AppPreferences.ServerVariables.AUTHORITY,
 								values);
+						if (CommonFunctions.isMyServiceRunning(
+								LocationUpdateService.class, mContext)) {
+							stopService(new Intent(MainActivity.this,
+									LocationUpdateService.class));
+							Intent intent = new Intent(MainActivity.this,
+									LocationUpdateService.class);
+							intent.putExtra(
+									AppPreferences.IntentExtras.HIGH_ACCURACY,
+									true);
+						}
 						new AskHelpAsyncTask().execute(params);
-						helpButton.setText(ASKED_HELP);
-					} else if (helpButton.getText().toString()
+						mHelpButton.setText(ASKED_HELP);
+					} else if (mHelpButton.getText().toString()
 							.equals(ASKED_HELP)) {
-						helpButton.clearAnimation();
-						Log.d(TAG, "in help received");
+						mHelpButton.clearAnimation();
+						// Log.d(TAG, "in help received");
 						String[] values = {
 								"public",
 								"index.php",
@@ -196,14 +218,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 								AppPreferences.ServerVariables.AUTHORITY,
 								values);
 						new AskHelpAsyncTask().execute(params);
-						helpButton.setText(ASK_HELP);
-						alarmManager.cancel(pendingIntent);
+						mHelpButton.setText(ASK_HELP);
+						mAlarmManager.cancel(mPendingIntent);
 						setIntentToNull();
 						setLocationReceivingAlarm();
-					} else if (helpButton.getText().toString().equals(HELPING)) {
-						helpButton.clearAnimation();
-						helpButton.setText(ASK_HELP);
-						alarmManager.cancel(pendingIntent);
+					} else if (mHelpButton.getText().toString().equals(HELPING)) {
+						mHelpButton.clearAnimation();
+						mHelpButton.setText(ASK_HELP);
+						mAlarmManager.cancel(mPendingIntent);
 						setIntentToNull();
 						setLocationReceivingAlarm();
 					}
@@ -218,17 +240,19 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	}
 
 	public void buttonAnimation() {
-		animation = new AlphaAnimation(1, 0); // Change alpha from fully visible
+		mAnimation = new AlphaAnimation(1, 0); // Change alpha from fully
+												// visible
 												// to invisible
-		animation.setDuration(500); // duration - half a second
-		animation.setInterpolator(new LinearInterpolator()); // do not alter
+		mAnimation.setDuration(500); // duration - half a second
+		mAnimation.setInterpolator(new LinearInterpolator()); // do not alter
 																// animation
 																// rate
-		animation.setRepeatCount(Animation.INFINITE); // Repeat animation
+		mAnimation.setRepeatCount(Animation.INFINITE); // Repeat animation
 														// infinitely
-		animation.setRepeatMode(Animation.REVERSE); // Reverse animation at the
-													// end so the button will
-													// fade back in
+		mAnimation.setRepeatMode(Animation.REVERSE); // Reverse animation at the
+														// end so the button
+														// will
+														// fade back in
 
 	}
 
@@ -243,12 +267,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		if (mReceiver != null) {
 			this.unregisterReceiver(mReceiver);
 		}
-		if (pendingIntent != null) {
-			alarmManager.cancel(pendingIntent);
+		if (mPendingIntent != null) {
+			mAlarmManager.cancel(mPendingIntent);
 		}
 		if (mGoogleApiClient != null) {
 			mGoogleApiClient.disconnect();
 		}
+
 	}
 
 	@Override
@@ -256,13 +281,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		super.onDestroy();
 		// starting a service to send location updates to server
 		if (CommonFunctions
-				.getSharedPreferences(context,
+				.getSharedPreferences(mContext,
 						AppPreferences.SharedPrefAuthentication.name)
 				.getString(AppPreferences.SharedPrefAuthentication.flag, "")
 				.isEmpty()) {
 
 		} else {
-			CommonFunctions.settingUserPreferenceLocationUpdates(context);
+			CommonFunctions.settingUserPreferenceLocationUpdates(mContext);
 		}
 	}
 
@@ -285,14 +310,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	// Utils
 	private void setLocationReceivingAlarm() {
-		alarmManager = (AlarmManager) getApplicationContext().getSystemService(
-				Context.ALARM_SERVICE);
+		mAlarmManager = (AlarmManager) getApplicationContext()
+				.getSystemService(Context.ALARM_SERVICE);
 		Intent intent = new Intent(getApplicationContext(),
 				ReceiveLocationService.class);
 		if (getIntent() != null) {
 			if (getIntent().hasExtra(AppPreferences.IntentExtras.COORDINATES)
 					&& getIntent().hasExtra(AppPreferences.IntentExtras.USERID)) {
-				helpButton.setText(HELPING);
+				mHelpButton.setText(HELPING);
 				intent.putExtra(
 						AppPreferences.IntentExtras.COORDINATES,
 						getIntent().getDoubleArrayExtra(
@@ -305,17 +330,17 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 			} else {
 			}
 		}
-		pendingIntent = PendingIntent.getService(this, 0, intent,
+		mPendingIntent = PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_CANCEL_CURRENT);
 		try {
-			alarmManager.cancel(pendingIntent);
+			mAlarmManager.cancel(mPendingIntent);
 		} catch (Exception e) {
 		}
 		int timeForAlarm = 6000;
 
-		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+		mAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
 				System.currentTimeMillis() + timeForAlarm, timeForAlarm,
-				pendingIntent);
+				mPendingIntent);
 	}
 
 	public void setNoConnectionView() {
@@ -337,11 +362,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	// GCM STUFF
 	public void gcmServiceImplementation() {
-		context = getApplicationContext();
+		mContext = getApplicationContext();
 		if (checkPlayServices()) {
-			gcm = GoogleCloudMessaging.getInstance(this);
-			regid = getRegistrationId(context);
-			if (regid.isEmpty()) {
+			mGcm = GoogleCloudMessaging.getInstance(this);
+			mRegid = getRegistrationId(mContext);
+			if (mRegid.isEmpty()) {
 				registerInBackground();
 			}
 
@@ -386,13 +411,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 			protected String doInBackground(Void... params) {
 				String msg = "";
 				try {
-					if (gcm == null) {
-						gcm = GoogleCloudMessaging.getInstance(context);
+					if (mGcm == null) {
+						mGcm = GoogleCloudMessaging.getInstance(mContext);
 					}
-					regid = gcm.register(SENDER_ID);
-					msg = "Device registered, registration ID=" + regid;
-					sendRegistrationIdToBackend(regid);
-					storeRegistrationId(context, regid);
+					mRegid = mGcm.register(SENDER_ID);
+					msg = "Device registered, registration ID=" + mRegid;
+					sendRegistrationIdToBackend(mRegid);
+					storeRegistrationId(mContext, mRegid);
 				} catch (IOException ex) {
 					msg = "Error :" + ex.getMessage();
 				}
@@ -448,20 +473,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
-				.addApi(LocationServices.API).build();
+				.addApi(LocationServices.API).addApi(ActivityRecognition.API)
+				.build();
 		mGoogleApiClient.connect();
 	}
 
 	private void initializeMapFields() {
-		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
+		mMapFragment = (MapFragment) getFragmentManager().findFragmentById(
 				R.id.map);
-		mapFragment.getMapAsync(this);
+		mMapFragment.getMapAsync(this);
 	}
 
 	@Override
 	public void onMapReady(GoogleMap arg0) {
 		mMap = arg0;
 		mMap.setMyLocationEnabled(true);
+		mMap.setLocationSource(this);
 		buildGoogleApiClient();
 	}
 
@@ -472,8 +499,41 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	@Override
 	public void onConnected(Bundle arg0) {
+
+		if (CommonFunctions.getSharedPreferences(mContext,
+				AppPreferences.SharedPrefActivityRecognition.name).getBoolean(
+				AppPreferences.SharedPrefActivityRecognition.enabled, false)) {
+			// Already enabled
+		} else {
+			Intent intent = new Intent(this, ActivityRecognitionService.class);
+			PendingIntent callbackIntent = PendingIntent.getService(this, 0,
+					intent, PendingIntent.FLAG_UPDATE_CURRENT);
+			PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi
+					.requestActivityUpdates(mGoogleApiClient, // your connected
+																// GoogleApiClient
+							300000, // how often you want callbacks
+							callbackIntent); // the PendingIntent which will
+			// receive updated activities
+			result.setResultCallback(new ResultCallback<Status>() {
+				@Override
+				public void onResult(Status status) {
+					if (status.isSuccess()) {
+						// success of registration of activity registration
+					}
+				}
+			});
+			SharedPreferences.Editor edit = CommonFunctions
+					.getSharedPreferences(mContext,
+							AppPreferences.SharedPrefActivityRecognition.name)
+					.edit();
+			edit.putBoolean(
+					AppPreferences.SharedPrefActivityRecognition.enabled, true);
+			edit.commit();
+		}
+
 		mLastLocation = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
+
 		if (mLastLocation != null) {
 			// Log.d(TAG, "mLastLocation is not null");
 			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
@@ -491,6 +551,21 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		} else {
 		}
 
+		mLocationRequest = new LocationRequest();
+		mLocationRequest.setInterval(10000);
+
+		if (highAccuracy) {
+			mLocationRequest.setFastestInterval(3000);
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+		} else {
+			mLocationRequest.setFastestInterval(5000);
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+		}
+		LocationServices.FusedLocationApi.requestLocationUpdates(
+				mGoogleApiClient, mLocationRequest, this);
 	}
 
 	public void setIntentToNull() {
@@ -506,8 +581,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	public void fillMap(ArrayList<LocationDetailsModel> locations) {
 		if (locations.size() == 0) {
-			Toast.makeText(MainActivity.this, "no one is near you",
-					Toast.LENGTH_SHORT).show();
+			// Toast.makeText(MainActivity.this, "no one is near you",
+			// Toast.LENGTH_SHORT).show();
 		} else {
 			for (int i = 0; i < locations.size(); i++) {
 				Marker marker = mMap.addMarker(new MarkerOptions()
@@ -558,12 +633,32 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 			super.onPostExecute(result);
 			dialog.dismiss();
 		}
-
 	}
 
 	@Override
 	public void onBackPressed() {
 		super.onBackPressed();
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		if (mListener != null) {
+			mListener.onLocationChanged(location);
+		}
+
+	}
+
+	@Override
+	public void activate(OnLocationChangedListener listener) {
+		mListener = listener;
+
+	}
+
+	@Override
+	public void deactivate() {
+		// Toast.makeText(this, "deactivated", Toast.LENGTH_SHORT).show();
+		mListener = null;
+
 	}
 
 }
