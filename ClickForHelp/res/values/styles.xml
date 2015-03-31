@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- For honeycomb and up -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="AppTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar">
+   <style name="AppTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar">
         <item name="android:actionBarStyle">@style/myTheme.ActionBar</item>
         <item name="android:popupMenuStyle">@style/myTheme.popupMenuStyle</item>
         <item name="android:itemTextAppearance">@style/itemTextStyle.AppTheme</item>
@@ -25,12 +24,34 @@
         <item name="android:textSize">20sp</item>
     </style>
 
+
+
+    <!--<style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+       <item name="colorPrimary">@color/nyupurple</item>
+   <item name="colorPrimaryDark">@color/dark_purle</item>
+   
+    </style>
+    <style name="iconTheme" parent="AppTheme">
+         <item name="actionBarStyle">@style/ActionBar.Solid.Sunshine.NoTitle</item>
+    </style>
+    <style name="itemTextStyle.AppTheme" parent="@style/TextAppearance.Widget.AppCompat.ExpandedMenu.Item">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style
+        name="ActionBar.Solid.Sunshine.NoTitle" parent="Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+         <item name="displayOptions">showHome|useLogo|showTitle</item>
+         <item name="logo">@drawable/action_bar_space_between_title_icon</item>
+         
+    </style>  -->
+    
+
     <style name="buttons">
         <item name="android:layout_width">150dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_gravity">center_horizontal</item>
         <item name="android:layout_marginTop">50dp</item>
-        <item name="android:background">@color/white</item>
+        <item name="android:background">@drawable/button_touch_selector</item>
         <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
         <item name="android:textColor">@color/violet</item>
     </style>

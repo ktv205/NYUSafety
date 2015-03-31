@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="16"
-        android:targetSdkVersion="21" />
+        android:targetSdkVersion="22" />
 
     <permission
         android:name="com.example.clickforhelp.permission.C2D_MESSAGE"
@@ -18,6 +18,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.example.clickforhelp.permission.C2D_MESSAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
 
     <!--
      The following two permissions are not required to use
@@ -36,48 +38,52 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.example.clickforhelp.controllers.MainActivity"
+            android:name="com.example.clickforhelp.controllers.ui.MainActivity"
             android:icon="@drawable/nyu_white"
             android:label="@string/app_name"
+            android:theme="@style/iconTheme"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.example.clickforhelp.controllers.AuthenticationActivity"
+            android:name="com.example.clickforhelp.controllers.ui.AuthenticationActivity"
             android:icon="@drawable/nyu_white"
             android:label="@string/app_name"
+            android:theme="@style/iconTheme"
             android:launchMode="singleInstance" >
         </activity>
         <activity
-            android:name="com.example.clickforhelp.controllers.SettingsActivity"
+            android:name="com.example.clickforhelp.controllers.ui.SettingsActivity"
             android:icon="@drawable/nyu_white"
-            android:label="@string/app_name"
+            android:label="@string/activity_settings"
             android:launchMode="standard"
-            android:parentActivityName="com.example.clickforhelp.controllers.MainActivity" >
+            android:parentActivityName="com.example.clickforhelp.controllers.ui.MainActivity" >
         </activity>
         <activity
-            android:name="com.example.clickforhelp.controllers.ForgotPasswordActivity"
+            android:name="com.example.clickforhelp.controllers.ui.ForgotPasswordActivity"
             android:icon="@drawable/nyu_white"
+            android:theme="@style/iconTheme"
             android:launchMode="singleInstance" >
         </activity>
         <activity
-            android:name="com.example.clickforhelp.controllers.FeedbackActivity"
+            android:name="com.example.clickforhelp.controllers.ui.FeedbackActivity"
             android:icon="@drawable/nyu_white"
             android:launchMode="singleTop"
-            android:parentActivityName="com.example.clickforhelp.controllers.SettingsActivity" >
+            android:label="@string/activity_feedback"
+            android:parentActivityName="com.example.clickforhelp.controllers.ui.SettingsActivity" >
         </activity>
         <activity
-            android:name="com.example.clickforhelp.controllers.HelperActivity"
+            android:name="com.example.clickforhelp.controllers.ui.HelperActivity"
+            android:theme="@style/iconTheme"
             android:launchMode="singleInstance" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             >
         </activity>
 
         <receiver
-            android:name="com.example.clickforhelp.controllers.GcmBroadcastReceiver"
+            android:name="com.example.clickforhelp.controllers.receivers.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
@@ -85,32 +91,35 @@
                 <category android:name="com.example.clickforhelp" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.example.clickforhelp.controllers.PowerConnectionReceiver" >
+        <receiver android:name="com.example.clickforhelp.controllers.receivers.PowerConnectionReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.example.clickforhelp.controllers.BatteryLevelReceiver" >
+        <receiver android:name="com.example.clickforhelp.controllers.receivers.BatteryLevelReceiver" >
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
-                <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.BATTERY_OKAY" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.example.clickforhelp.controllers.BootReceiver" >
+        <receiver android:name="com.example.clickforhelp.controllers.receivers.BootCompleteReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+          </intent-filter>
         </receiver>
 
-        <service android:name="com.example.clickforhelp.controllers.GcmIntentService" />
+        <service android:name="com.example.clickforhelp.controllers.services.GcmIntentService" />
         <service
-            android:name="com.example.clickforhelp.controllers.LocationUpdateService"
+            android:name="com.example.clickforhelp.controllers.services.LocationUpdateService"
             android:exported="false" />
         <service
-            android:name="com.example.clickforhelp.controllers.ReceiveLocationService"
+            android:name="com.example.clickforhelp.controllers.services.ReceiveLocationService"
             android:exported="false" >
         </service>
+        <service android:name=".ActivityRecognitionService"></service>
 
         <meta-data
             android:name="com.google.android.gms.version"

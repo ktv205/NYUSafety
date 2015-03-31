@@ -7,6 +7,9 @@ public class AppPreferences {
 		public final static int VERIFICATION_FLAG = 1993;
 		public final static int ACTIVE_FLAG = 1994;
 		public final static int BACK_FLAG = 1995;
+		public final static int LOGIN_BACK=1996;
+		public final static int SIGNUP_SUCCESS=1998;
+		
 	}
 
 	public static abstract class IntentExtras {
@@ -26,6 +29,9 @@ public class AppPreferences {
 		public final static String user_email = "user_email";
 		public final static String user_id = "user_id";
 		public final static String flag = "user_status";
+		public final static String password="password";
+		public final static String FLAG_INACTIVE="-1";
+		public final static String FLAG_ACTIVE="1";
 	}
 
 	public static abstract class SharedPrefLocationSettings {

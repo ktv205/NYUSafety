@@ -3,6 +3,7 @@
     android:id="@+id/authentication_parent0_linear"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical" >
 
 </LinearLayout>
