@@ -13,8 +13,9 @@ public class MyJSONParser {
 	private static final String LAT = "latitude";
 	private static final String LNG = "longitude";
 	private static final String EMAIL = "userid";
+	private static final String CODE = "code";
 
-	public ArrayList<LocationDetailsModel> parseLocation(String jsonString) {
+	public static ArrayList<LocationDetailsModel> parseLocation(String jsonString) {
 		ArrayList<LocationDetailsModel> locationArrayList = new ArrayList<LocationDetailsModel>();
 		try {
 			JSONObject mainObject = new JSONObject(jsonString);
@@ -37,5 +38,19 @@ public class MyJSONParser {
 
 		return locationArrayList;
 
+	}
+
+	public static int AuthenticationParser(String jsonString) {
+		int code = 0;
+		try {
+			JSONObject mainObject = new JSONObject(jsonString);
+			code = mainObject.getInt(CODE);
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return code;
 	}
 }

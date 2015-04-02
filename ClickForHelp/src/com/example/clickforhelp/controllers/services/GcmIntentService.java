@@ -26,16 +26,21 @@ public class GcmIntentService extends IntentService {
 	private static final String TAG = "GcmIntentService";
 	private static final int HElP_REQUESTED = 1;
 	private static final int HELP_RECEIVED = 0;
+	 private Handler mHandler; 
 
 	// private static final int ID_HELP_RECEIVED_NOTIFICATION = 2;
 
 	public GcmIntentService() {
 		super(TAG);
 	}
-
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+    	mHandler = new Handler(); 
+    	return super.onStartCommand(intent, flags, startId);
+    }
 	@Override
 	protected void onHandleIntent(Intent intent) {
-
+       
 		Bundle extras = intent.getExtras();
 		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
 		String messageType = gcm.getMessageType(intent);
@@ -100,13 +105,13 @@ public class GcmIntentService extends IntentService {
 			mNotificationManagerCompat = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 			mNotificationManagerCompat.notify(notificationId, mBuilder.build());
 		} else if (helpRequested == HELP_RECEIVED) {
-			Handler mHandler=new Handler();
+			
 			mHandler.post(new DisplayToast(this,userId.split("@")[0] + " received help"));
 			mNotificationManagerCompat.cancel(notificationId);
 		}
 	}
 	
-	public class DisplayToast implements Runnable {
+	public static class DisplayToast implements Runnable {
 	    private final Context mContext;
 	    String mText;
 

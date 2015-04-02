@@ -1,7 +1,7 @@
 package com.example.clickforhelp.controllers.services;
 
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.controllers.utils.HttpManager;
+import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
@@ -15,7 +15,6 @@ import com.google.android.gms.location.LocationServices;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -95,41 +94,12 @@ public class LocationUpdateService extends Service implements
 
 	@Override
 	public void onLocationChanged(Location arg0) {
-		String[] locationValues = {
-				"public",
-				"index.php",
-				"updatelocation",
-				getSharedPreferences(
+		RequestParams locationParams=CommonFunctions.buildLocationUpdateParams(getSharedPreferences(
 						AppPreferences.SharedPrefAuthentication.name,
 						MODE_PRIVATE).getString(
-						AppPreferences.SharedPrefAuthentication.user_email, ""),
-				String.valueOf(arg0.getLatitude()),
-				String.valueOf(arg0.getLongitude()) };
-		RequestParams locationParams = CommonFunctions.setParams(
-				AppPreferences.ServerVariables.SCHEME,
-				AppPreferences.ServerVariables.AUTHORITY, locationValues);
+						AppPreferences.SharedPrefAuthentication.user_email, ""), arg0.getLatitude(), arg0.getLongitude());
 		if (CommonFunctions.isConnected(this)) {
-			new SendLocationsAsyncTask().execute(locationParams);
-		}
-
-	}
-
-	public class SendLocationsAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-		}
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			// Log.d(TAG, "in onPostexecute locationupdate");
-			super.onPostExecute(result);
+			new SendLocationsAsyncTask(this).execute(locationParams);
 		}
 
 	}

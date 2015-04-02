@@ -14,8 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class WelcomeFragment extends Fragment {
-	private View view;
-	private OnClickAuthentication auth;
+	private View mView;
+	private OnClickAuthentication mAuth;
 
 	public interface OnClickAuthentication {
 		public void onClickAuthButton(int flag);
@@ -25,7 +25,7 @@ public class WelcomeFragment extends Fragment {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			auth = (OnClickAuthentication) activity;
+			mAuth = (OnClickAuthentication) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnHeadlineSelectedListener");
@@ -35,8 +35,8 @@ public class WelcomeFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		view = inflater.inflate(R.layout.fragment_welcome, container, false);
-		return view;
+		mView = inflater.inflate(R.layout.fragment_welcome, container, false);
+		return mView;
 	}
 
 	@Override
@@ -48,25 +48,26 @@ public class WelcomeFragment extends Fragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		Button signupButton = (Button) view
+		Button signupButton = (Button) mView
 				.findViewById(R.id.welcome_button_signup);
-		TextView loginTextView = (TextView) view
+		TextView loginTextView = (TextView) mView
 				.findViewById(R.id.welcome_text_login);
 		signupButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				auth.onClickAuthButton(AppPreferences.Flags.SIGNUP_FLAG);
+				mAuth.onClickAuthButton(AppPreferences.Flags.SIGNUP_FLAG);
 			}
 		});
 		loginTextView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				auth.onClickAuthButton(AppPreferences.Flags.LOGIN_FLAG);
+				mAuth.onClickAuthButton(AppPreferences.Flags.LOGIN_FLAG);
 
 			}
 		});
 
 	}
+
 	@Override
 	public void onResume() {
 		super.onResume();

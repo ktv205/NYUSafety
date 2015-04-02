@@ -25,7 +25,7 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 	private String[] locationValues = { "send updates all the time",
 			"send updates if the power is 30 percent or more(recommended)",
 			"when plugged in to a power source", "never(not recommended)" };
-	private TextView text2;
+	private TextView mText2;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +43,7 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 				if (position == 0) {
 					LocationSettingsDialogFragment fragment = new LocationSettingsDialogFragment();
 					fragment.show(getFragmentManager(), null);
-					text2 = (TextView) view.findViewById(android.R.id.text2);
+					mText2 = (TextView) view.findViewById(android.R.id.text2);
 
 				} else if (position == 1) {
 					Intent intent = new Intent(SettingsActivity.this,
@@ -153,13 +153,14 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 
 	@Override
 	public void setSummary(int flag) {
-		text2.setText(locationValues[flag]);
+		mText2.setText(locationValues[flag]);
 	}
-	
+
 	@Override
 	public Intent getParentActivityIntent() {
 		// TODO Auto-generated method stub
-		return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		return super.getParentActivityIntent().addFlags(
+				Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	}
 
 }

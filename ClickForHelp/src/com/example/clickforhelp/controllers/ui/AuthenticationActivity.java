@@ -28,16 +28,16 @@ public class AuthenticationActivity extends Activity implements
 	private final static String LOGINTAG = "LoginFragmentTAG";
 	private final static String SIGNUPTAG = "SignupFragmentTAG";
 	private final static String VERIFYTAG = "EmailVerificationFragmentTAG";
-	private FragmentManager fragmentManager;
-	private FragmentTransaction fragmentTransaction;
+	private FragmentManager mFragmentManager;
+	private FragmentTransaction mFragmentTransaction;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
 		if (CommonFunctions.isConnected(this)) {
-			fragmentManager = getFragmentManager();
-			fragmentTransaction = fragmentManager.beginTransaction();
+			mFragmentManager = getFragmentManager();
+			mFragmentTransaction = mFragmentManager.beginTransaction();
 			Fragment fragment = getFragmentManager().findFragmentByTag(
 					WELCOMETAG);
 			Fragment loginFragment = getFragmentManager().findFragmentByTag(
@@ -47,7 +47,7 @@ public class AuthenticationActivity extends Activity implements
 			if (fragment == null
 					&& (loginFragment == null && signupFragment == null)) {
 				//Log.d(TAG, "welcome fragment is null in onCreate");
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
 		} else {
@@ -88,6 +88,7 @@ public class AuthenticationActivity extends Activity implements
 		super.onResume();
 		if (!CommonFunctions.isConnected(this)) {
 			setNoConnectionView();
+			
 		}
 	}
 
@@ -108,65 +109,65 @@ public class AuthenticationActivity extends Activity implements
 
 	@Override
 	public void onClickAuthButton(int flag) {
-		fragmentTransaction = fragmentManager.beginTransaction();
+		mFragmentTransaction = mFragmentManager.beginTransaction();
 		if (flag == AppPreferences.Flags.LOGIN_FLAG) {
 
-			Fragment fragment = fragmentManager.findFragmentByTag(LOGINTAG);
+			Fragment fragment = mFragmentManager.findFragmentByTag(LOGINTAG);
 			if (fragment != null) {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, LOGINTAG);
 			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new LoginFragment(), LOGINTAG);
 			}
 
 		} else if (flag == AppPreferences.Flags.SIGNUP_FLAG) {
-			Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
+			Fragment fragment = mFragmentManager.findFragmentByTag(SIGNUPTAG);
 			if (fragment != null) {
 				//Log.d(TAG, "fragment is not null");
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, SIGNUPTAG);
 			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new SignupFragment(), SIGNUPTAG);
 			}
 		}
-		fragmentTransaction.commit();
+		mFragmentTransaction.commit();
 	}
 
 	@Override
 	public void onBackPressed() {
-		if (fragmentManager != null) {
-			Fragment loginFragment = fragmentManager
+		if (mFragmentManager != null) {
+			Fragment loginFragment = mFragmentManager
 					.findFragmentByTag(LOGINTAG);
-			Fragment signupFragment = fragmentManager
+			Fragment signupFragment = mFragmentManager
 					.findFragmentByTag(SIGNUPTAG);
-			Fragment verfiyFragment = fragmentManager
+			Fragment verfiyFragment = mFragmentManager
 					.findFragmentByTag(VERIFYTAG);
 			if ((loginFragment != null && loginFragment.isVisible())
 					|| (signupFragment != null && signupFragment.isVisible())) {
-				fragmentTransaction = fragmentManager.beginTransaction();
-				Fragment fragment = fragmentManager
+				mFragmentTransaction = mFragmentManager.beginTransaction();
+				Fragment fragment = mFragmentManager
 						.findFragmentByTag(WELCOMETAG);
 				if (fragment != null) {
-					fragmentTransaction.replace(
+					mFragmentTransaction.replace(
 							R.id.authentication_parent0_linear, fragment,
 							WELCOMETAG).commit();
 				} else {
-					fragmentTransaction.replace(
+					mFragmentTransaction.replace(
 							R.id.authentication_parent0_linear,
 							new WelcomeFragment(), WELCOMETAG).commit();
 				}
 			} else if (verfiyFragment != null && verfiyFragment.isVisible()) {
-				fragmentTransaction = fragmentManager.beginTransaction();
-				Fragment fragment = fragmentManager
+				mFragmentTransaction = mFragmentManager.beginTransaction();
+				Fragment fragment = mFragmentManager
 						.findFragmentByTag(SIGNUPTAG);
 				if (fragment != null) {
-					fragmentTransaction.replace(
+					mFragmentTransaction.replace(
 							R.id.authentication_parent0_linear, fragment,
 							SIGNUPTAG).commit();
 				} else {
-					fragmentTransaction.replace(
+					mFragmentTransaction.replace(
 							R.id.authentication_parent0_linear,
 							new SignupFragment(), SIGNUPTAG).commit();
 				}
@@ -184,23 +185,23 @@ public class AuthenticationActivity extends Activity implements
 	@Override
 	public void switchToLogin(int flag) {
 		if (flag == AppPreferences.Flags.LOGIN_BACK) {
-			fragmentTransaction = fragmentManager.beginTransaction();
-			Fragment fragment = fragmentManager.findFragmentByTag(LOGINTAG);
+			mFragmentTransaction = mFragmentManager.beginTransaction();
+			Fragment fragment = mFragmentManager.findFragmentByTag(LOGINTAG);
 			if (fragment != null) {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, LOGINTAG).commit();
 			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new LoginFragment(), LOGINTAG).commit();
 			}
 		} else if (flag == AppPreferences.Flags.SIGNUP_SUCCESS) {
-			fragmentTransaction = fragmentManager.beginTransaction();
-			Fragment fragment = fragmentManager.findFragmentByTag(VERIFYTAG);
+			mFragmentTransaction = mFragmentManager.beginTransaction();
+			Fragment fragment = mFragmentManager.findFragmentByTag(VERIFYTAG);
 			if (fragment != null) {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						fragment, VERIFYTAG).commit();
 			} else {
-				fragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 						new EmailVerificationFragment(), VERIFYTAG).commit();
 			}
 		}
@@ -208,13 +209,13 @@ public class AuthenticationActivity extends Activity implements
 
 	@Override
 	public void switchToSignup() {
-		fragmentTransaction = fragmentManager.beginTransaction();
-		Fragment fragment = fragmentManager.findFragmentByTag(SIGNUPTAG);
+		mFragmentTransaction = mFragmentManager.beginTransaction();
+		Fragment fragment = mFragmentManager.findFragmentByTag(SIGNUPTAG);
 		if (fragment != null) {
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
+			mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 					fragment, SIGNUPTAG).commit();
 		} else {
-			fragmentTransaction.replace(R.id.authentication_parent0_linear,
+			mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 					new SignupFragment(), SIGNUPTAG).commit();
 		}
 	}

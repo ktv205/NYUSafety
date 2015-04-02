@@ -1,15 +1,17 @@
 package com.example.clickforhelp.models;
 
 public class AppPreferences {
+	public static final String GOOGLEREGID = "947264921784";
+
 	public static abstract class Flags {
 		public final static int SIGNUP_FLAG = 1991;
 		public final static int LOGIN_FLAG = 1992;
 		public final static int VERIFICATION_FLAG = 1993;
 		public final static int ACTIVE_FLAG = 1994;
 		public final static int BACK_FLAG = 1995;
-		public final static int LOGIN_BACK=1996;
-		public final static int SIGNUP_SUCCESS=1998;
-		
+		public final static int LOGIN_BACK = 1996;
+		public final static int SIGNUP_SUCCESS = 1998;
+
 	}
 
 	public static abstract class IntentExtras {
@@ -20,9 +22,10 @@ public class AppPreferences {
 		public final static String USERID = "userid";
 		public final static String LOCATIONS = "locations";
 		public final static String NOCONNECTION = "no connections";
-		public final static String CHANGE="change password";
-		public final static String HIGH_ACCURACY="high_accuracy";
-		public final static String BALANCED_POWER="balanced_power";
+		public final static String CHANGE = "change password";
+		public final static String HIGH_ACCURACY = "high_accuracy";
+		public final static String BALANCED_POWER = "balanced_power";
+		public final static String NEW_PASSWORD = "new password";
 	}
 
 	public static abstract class SharedPrefAuthentication {
@@ -31,9 +34,9 @@ public class AppPreferences {
 		public final static String user_email = "user_email";
 		public final static String user_id = "user_id";
 		public final static String flag = "user_status";
-		public final static String password="password";
-		public final static String FLAG_INACTIVE="-1";
-		public final static String FLAG_ACTIVE="1";
+		public final static String password = "password";
+		public final static String FLAG_INACTIVE = "-1";
+		public final static String FLAG_ACTIVE = "1";
 	}
 
 	public static abstract class SharedPrefLocationSettings {
@@ -43,10 +46,18 @@ public class AppPreferences {
 		public final static int ALWAYS = 1;
 		public final static int RECOMENDED = 2;
 		public final static int PLUGGEDIN = 3;
+		public final static String UPDATE = "u";
+		public final static String UPDATEHOME = "uh";
 	}
-	public static abstract class SharedPrefActivityRecognition{
-		public final static String name="ActivityRecognition";
-		public final static String enabled="enabled";
+
+	public static abstract class SharedPrefActivityRecognition {
+		public final static String name = "ActivityRecognition";
+		public final static String enabled = "enabled";
+		public final static String WALKING = "w";
+		public final static String STILL = "s";
+		public final static String VEHICLE = "o";
+		public final static String activityType= "activityType";
+		public final static String type = "type";
 	}
 
 	public static abstract class ServerVariables {
@@ -57,5 +68,4 @@ public class AppPreferences {
 	public static abstract class Others {
 		public final static String LOADING = "Loading...";
 	}
-
 }

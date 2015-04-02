@@ -11,7 +11,7 @@ import com.example.clickforhelp.models.AppPreferences;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app. FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,8 +21,8 @@ import android.widget.Button;
 
 public class ForgotPasswordActivity extends Activity implements
 		EmailFragmentInterface, EmailVerificationFragmentInterface {
-	private FragmentManager fragmentManager;
-	private FragmentTransaction fragmentTransaction;
+	private  FragmentManager  mFragmentManager;
+	private FragmentTransaction mFragmentTransaction;
 	private final static String EMAILTAG = "EmailFragment";
 	private final static String VERFICATIONTAG = "EmailVerficationTAG";
 	private final static String NEWPASSWORDTAG = "NEWPASSWORDTAG";
@@ -33,8 +33,8 @@ public class ForgotPasswordActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_forgotpassword);
 		if (CommonFunctions.isConnected(this)) {
-			fragmentManager = getFragmentManager();
-			fragmentTransaction = fragmentManager.beginTransaction();
+			 mFragmentManager = getFragmentManager();
+			mFragmentTransaction =  mFragmentManager.beginTransaction();
 			Fragment fragment = getFragmentManager()
 					.findFragmentByTag(EMAILTAG);
 			Fragment newPasswordFragment = getFragmentManager()
@@ -42,19 +42,19 @@ public class ForgotPasswordActivity extends Activity implements
 			if (getIntent() != null) {
 				if (getIntent().hasExtra(AppPreferences.IntentExtras.CHANGE)) {
 					if (newPasswordFragment == null) {
-						fragmentTransaction.replace(R.id.forgotpassword_linear,
+						mFragmentTransaction.replace(R.id.forgotpassword_linear,
 								new NewPasswordFragment(), NEWPASSWORDTAG)
 								.commit();
 					}
 				} else {
 					if (fragment == null) {
-						fragmentTransaction.replace(R.id.forgotpassword_linear,
+						mFragmentTransaction.replace(R.id.forgotpassword_linear,
 								new EmailFragment(), EMAILTAG).commit();
 					}
 				}
 			} else {
 				//Log.d(TAG, "email fragment is null in onCreate");
-				fragmentTransaction.replace(R.id.forgotpassword_linear,
+				mFragmentTransaction.replace(R.id.forgotpassword_linear,
 						new EmailFragment(), EMAILTAG).commit();
 			}
 		} else {
@@ -82,42 +82,42 @@ public class ForgotPasswordActivity extends Activity implements
 
 	@Override
 	public void replaceWithVerificationCodeFragment() {
-		fragmentTransaction = fragmentManager.beginTransaction();
-		Fragment fragment = fragmentManager.findFragmentByTag(VERFICATIONTAG);
+		mFragmentTransaction =  mFragmentManager.beginTransaction();
+		Fragment fragment =  mFragmentManager.findFragmentByTag(VERFICATIONTAG);
 		if (fragment != null) {
-			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					VERFICATIONTAG).commit();
 		} else {
 			fragment = new EmailVerificationFragment();
-			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					VERFICATIONTAG).commit();
 		}
 		Bundle bundle = new Bundle();
-		bundle.putBoolean("new password", true);
+		bundle.putBoolean(AppPreferences.IntentExtras.NEW_PASSWORD, true);
 		fragment.setArguments(bundle);
 
 	}
 
 	@Override
 	public void replaceWithNewPasswordFragment() {
-		fragmentTransaction = fragmentManager.beginTransaction();
-		Fragment fragment = fragmentManager.findFragmentByTag(NEWPASSWORDTAG);
+		mFragmentTransaction =  mFragmentManager.beginTransaction();
+		Fragment fragment =  mFragmentManager.findFragmentByTag(NEWPASSWORDTAG);
 		if (fragment != null) {
-			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					NEWPASSWORDTAG).commit();
 		} else {
 			fragment = new NewPasswordFragment();
-			fragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
+			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					NEWPASSWORDTAG).commit();
 		}
 	}
 
 	@Override
 	public void onBackPressed() {
-		Fragment fragment = fragmentManager.findFragmentByTag(VERFICATIONTAG);
+		Fragment fragment =  mFragmentManager.findFragmentByTag(VERFICATIONTAG);
 		if (fragment != null && fragment.isVisible()) {
-			fragmentTransaction = fragmentManager.beginTransaction();
-			fragmentTransaction.replace(R.id.forgotpassword_linear,
+			mFragmentTransaction =  mFragmentManager.beginTransaction();
+			mFragmentTransaction.replace(R.id.forgotpassword_linear,
 					new EmailFragment(), EMAILTAG).commit();
 		} else {
 			super.onBackPressed();

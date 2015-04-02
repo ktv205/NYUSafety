@@ -5,6 +5,7 @@ import java.util.HashMap;
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.HttpManager;
+import com.example.clickforhelp.controllers.utils.MyJSONParser;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
@@ -13,6 +14,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,22 +24,24 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class EmailFragment extends Fragment {
-	// private final static String TAG = "EmailFragment";
+	private final static String TAG = EmailFragment.class.getSimpleName();
 	private final static int EMAIL_EMPTY = 0;
 	private final static int RESULT_OK = 1;
 	private final static int INVALID_EMAIL = 6;
-	private final static String NEW_USER = "1";
-	private final static String EXISTING_USER = "2";
+	private final static int NEW_USER = 0;
+	private final static int EXISTING_USER = 1;
+	private final static int DORMANT_USER = -1;
+	private Button mEmailButton;
 
-	private String email;
-	View view;
-	private EmailFragmentInterface emailFragmentInterface;
+	private String mEmail;
+	View mView;
+	private EmailFragmentInterface mEmailFragmentInterface;
 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			emailFragmentInterface = (EmailFragmentInterface) activity;
+			mEmailFragmentInterface = (EmailFragmentInterface) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnHeadlineSelectedListener");
@@ -51,11 +55,11 @@ public class EmailFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		view = inflater.inflate(R.layout.fragment_email, container, false);
-		Button emailButton = (Button) view
+		mView = inflater.inflate(R.layout.fragment_email, container, false);
+		mEmailButton = (Button) mView
 				.findViewById(R.id.email_button_submit);
 		getActivity().getActionBar().setTitle(R.string.title_forgot_password);
-		emailButton.setOnClickListener(new OnClickListener() {
+		mEmailButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -67,11 +71,12 @@ public class EmailFragment extends Fragment {
 					message = "enter valid nyu email id";
 				} else {
 					String[] values = { "public", "index.php",
-							"verificationcode", email };
+							"forgotpassword", mEmail };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
 					new SendEmailAsyncTask().execute(params);
+					mEmailButton.setEnabled(false);
 
 				}
 				if (message != null) {
@@ -81,17 +86,17 @@ public class EmailFragment extends Fragment {
 
 			}
 		});
-		return view;
+		return mView;
 	}
 
 	public int getTextFromFields() {
-		EditText emailEdittext = (EditText) view
+		EditText emailEdittext = (EditText) mView
 				.findViewById(R.id.email_edit_email);
-		email = emailEdittext.getText().toString();
+		mEmail = emailEdittext.getText().toString();
 		int flag;
-		if (email.isEmpty()) {
+		if (mEmail.isEmpty()) {
 			flag = EMAIL_EMPTY;
-		} else if (!CommonFunctions.validNyuEmail(email)) {
+		} else if (!CommonFunctions.validNyuEmail(mEmail)) {
 			flag = INVALID_EMAIL;
 		} else {
 			flag = RESULT_OK;
@@ -108,7 +113,7 @@ public class EmailFragment extends Fragment {
 		protected void onPreExecute() {
 			super.onPreExecute();
 			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle("Loading...");
+			dialog.setTitle(AppPreferences.Others.LOADING);
 			dialog.setMessage("Please wait while we verify your email");
 			dialog.show();
 		}
@@ -123,20 +128,41 @@ public class EmailFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			dialog.cancel();
-			if (result.contains(NEW_USER)) {
-				Toast.makeText(
-						getActivity(),
-						"we couldnt find your email,please sign up if you are a new user",
-						Toast.LENGTH_SHORT).show();
-			} else if (result.contains(EXISTING_USER)) {
-				HashMap<String, String> values = new HashMap<String, String>();
-				values.put(AppPreferences.SharedPrefAuthentication.user_email,
-						email);
-				values.put(AppPreferences.SharedPrefAuthentication.flag, AppPreferences.SharedPrefAuthentication.FLAG_INACTIVE);
-				CommonFunctions.saveInPreferences(getActivity(),
-						AppPreferences.SharedPrefAuthentication.name, values);
-				emailFragmentInterface.replaceWithVerificationCodeFragment();
+			Log.d(TAG,result);
+			if (result != null) {
+				int code = MyJSONParser.AuthenticationParser(result);
+				if (code == NEW_USER) {
+					Toast.makeText(
+							getActivity(),
+							"we couldnt find your email,please sign up if you are a new user",
+							Toast.LENGTH_SHORT).show();
+					mEmailButton.setEnabled(true);
+				} else if (code == EXISTING_USER) {
+					HashMap<String, String> values = new HashMap<String, String>();
+					values.put(
+							AppPreferences.SharedPrefAuthentication.user_email,
+							mEmail);
+					values.put(
+							AppPreferences.SharedPrefAuthentication.flag,
+							AppPreferences.SharedPrefAuthentication.FLAG_INACTIVE);
+					CommonFunctions.saveInPreferences(getActivity(),
+							AppPreferences.SharedPrefAuthentication.name,
+							values);
+					mEmailFragmentInterface
+							.replaceWithVerificationCodeFragment();
 
+				} else if (code == DORMANT_USER) {
+					Toast.makeText(
+							getActivity(),
+							"unverified account please check your mail for the code",
+							Toast.LENGTH_SHORT).show();
+					mEmailButton.setEnabled(true);
+				}
+			} else {
+				Toast.makeText(getActivity(),
+						"something went wrong please wait", Toast.LENGTH_SHORT)
+						.show();
+				mEmailButton.setEnabled(true);
 			}
 		}
 

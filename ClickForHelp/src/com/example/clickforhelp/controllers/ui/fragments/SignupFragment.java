@@ -5,6 +5,7 @@ import java.util.HashMap;
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.HttpManager;
+import com.example.clickforhelp.controllers.utils.MyJSONParser;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 import com.example.clickforhelp.models.RequestParams;
@@ -15,6 +16,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+//import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,27 +27,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class SignupFragment extends Fragment {
-	private View view;
-	// private final String TAG = "SignupFragment";
-	private final static int NAME_EMPTY = 0;
-	private final static int EMAIL_EMPTY = 1;
-	private final static int PASSWORD_EMPTY = 2;
-	private final static int RETYPE_EMPTY = 3;
-	private final static int DONT_MATCH = 4;
-	private final static int RESULT_OK = 5;
-	private final static int INVALID_EMAIL = 6;
-	private final static int PHONE_EMPTY = 7;
-	private final static String NEXT_STEP = "1";
-	private String name, email, password, reType, phone;
-	private UserModel user;
+	private View mView;
+	//private final String TAG = SignupFragment.class.getSimpleName();
+	private final static int NAME_EMPTY = 0, EMAIL_EMPTY = 1,
+			PASSWORD_EMPTY = 2, RETYPE_EMPTY = 3, DONT_MATCH = 4,
+			RESULT_OK = 5, INVALID_EMAIL = 6, PHONE_EMPTY = 7, NEXT_STEP = 1,
+			NOT_VERIFIED = -1, ACTIVE = -2, ERROR = 0;
+	private Button mSubmitButton;
+	private String mName, mEmail, mPassword, mReType, mPhone;
+	private UserModel mUser;
+	private static final String DETAILS_WAIT = "please wait while we process your details";
 
-	private SignupInterface signupInterface;
+	private SignupInterface mSignupInterface;
 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			signupInterface = (SignupInterface) activity;
+			mSignupInterface = (SignupInterface) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnHeadlineSelectedListener");
@@ -61,8 +60,8 @@ public class SignupFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		view = inflater.inflate(R.layout.fragment_signup, container, false);
-		return view;
+		mView = inflater.inflate(R.layout.fragment_signup, container, false);
+		return mView;
 	}
 
 	public interface SignupInterface {
@@ -73,19 +72,18 @@ public class SignupFragment extends Fragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		getActivity().getActionBar().setTitle(R.string.string_button_signup);
-		TextView loginBack = (TextView) view.findViewById(R.id.login_back);
+		TextView loginBack = (TextView) mView.findViewById(R.id.login_back);
 		loginBack.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				signupInterface.switchToLogin(AppPreferences.Flags.LOGIN_BACK);
+				mSignupInterface.switchToLogin(AppPreferences.Flags.LOGIN_BACK);
 
 			}
 		});
-		Button submitButton = (Button) view
-				.findViewById(R.id.signup_button_submit);
+		mSubmitButton = (Button) mView.findViewById(R.id.signup_button_submit);
 		if (CommonFunctions.isConnected(getActivity())) {
-			submitButton.setOnClickListener(new OnClickListener() {
+			mSubmitButton.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
@@ -108,11 +106,12 @@ public class SignupFragment extends Fragment {
 					} else {
 						createUserModel();
 						String[] paths = { "public", "index.php", "adduser",
-								email, name, password, phone };
+								mEmail, mName, mPassword, mPhone };
 						RequestParams params = CommonFunctions.setParams(
 								ServerVariables.SCHEME,
 								ServerVariables.AUTHORITY, paths);
 						new SendSignupDetailsAsyncTask().execute(params);
+						mSubmitButton.setEnabled(false);
 					}
 					if (message != null) {
 						Toast.makeText(getActivity(), message,
@@ -128,52 +127,53 @@ public class SignupFragment extends Fragment {
 	}
 
 	public void createUserModel() {
-		user = new UserModel();
-		user.setName(name);
-		user.setEmail(email);
-		user.setPassword(password);
+		mUser = new UserModel();
+		mUser.setName(mName);
+		mUser.setEmail(mEmail);
+		mUser.setPassword(mPassword);
 		HashMap<String, String> values = new HashMap<String, String>();
-		values.put(AppPreferences.SharedPrefAuthentication.user_name, name);
-		values.put(AppPreferences.SharedPrefAuthentication.user_email, email);
-		values.put(AppPreferences.SharedPrefAuthentication.flag, AppPreferences.SharedPrefAuthentication.FLAG_INACTIVE);
-		values.put(AppPreferences.SharedPrefAuthentication.password, password);
+		values.put(AppPreferences.SharedPrefAuthentication.user_name, mName);
+		values.put(AppPreferences.SharedPrefAuthentication.user_email, mEmail);
+		values.put(AppPreferences.SharedPrefAuthentication.flag,
+				AppPreferences.SharedPrefAuthentication.FLAG_INACTIVE);
+		values.put(AppPreferences.SharedPrefAuthentication.password, mPassword);
 		CommonFunctions.saveInPreferences(getActivity(),
 				AppPreferences.SharedPrefAuthentication.name, values);
 	}
 
 	public int getTextFromFields() {
-		EditText nameEdittext = (EditText) view
+		EditText nameEdittext = (EditText) mView
 				.findViewById(R.id.signup_edit_name);
-		EditText emailEdittext = (EditText) view
+		EditText emailEdittext = (EditText) mView
 				.findViewById(R.id.signup_edit_email);
-		EditText passwordEdittext = (EditText) view
+		EditText passwordEdittext = (EditText) mView
 				.findViewById(R.id.signup_edit_password);
-		EditText reTypeEdittext = (EditText) view
+		EditText reTypeEdittext = (EditText) mView
 				.findViewById(R.id.signup_edit_repassword);
-		EditText phoneEdittext = (EditText) view
+		EditText phoneEdittext = (EditText) mView
 				.findViewById(R.id.signup_edit_phone);
-		name = nameEdittext.getText().toString();
-		email = emailEdittext.getText().toString();
-		password = passwordEdittext.getText().toString();
-		reType = reTypeEdittext.getText().toString();
-		phone = phoneEdittext.getText().toString();
-		if (name.isEmpty()) {
+		mName = nameEdittext.getText().toString();
+		mEmail = emailEdittext.getText().toString();
+		mPassword = passwordEdittext.getText().toString();
+		mReType = reTypeEdittext.getText().toString();
+		mPhone = phoneEdittext.getText().toString();
+		if (mName.isEmpty()) {
 			return NAME_EMPTY;
-		} else if (email.isEmpty()) {
+		} else if (mEmail.isEmpty()) {
 			return EMAIL_EMPTY;
-		} else if (password.isEmpty()) {
+		} else if (mPassword.isEmpty()) {
 			return PASSWORD_EMPTY;
-		} else if (reType.isEmpty()) {
+		} else if (mReType.isEmpty()) {
 			return RETYPE_EMPTY;
-		} else if (!password.equals(reType)) {
+		} else if (!mPassword.equals(mReType)) {
 			return DONT_MATCH;
-		} else if (!CommonFunctions.validNyuEmail(email)) {
+		} else if (!CommonFunctions.validNyuEmail(mEmail)) {
 			return INVALID_EMAIL;
-		} else if (phone.isEmpty() || phone.length() > 10
-				|| phone.length() < 10) {
+		} else if (mPhone.isEmpty() || mPhone.length() > 10
+				|| mPhone.length() < 10) {
 			return PHONE_EMPTY;
 		} else {
-			user = new UserModel();
+			mUser = new UserModel();
 			return RESULT_OK;
 
 		}
@@ -189,7 +189,7 @@ public class SignupFragment extends Fragment {
 			super.onPreExecute();
 			dialog = new ProgressDialog(getActivity());
 			dialog.setTitle(AppPreferences.Others.LOADING);
-			dialog.setMessage("please wait while we process your details");
+			dialog.setMessage(DETAILS_WAIT);
 		}
 
 		@Override
@@ -201,17 +201,30 @@ public class SignupFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			if (result != null) {
-				if (result.contains(NEXT_STEP)) {
-					signupInterface.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
-				} else {
-					Toast.makeText(getActivity(),
-							"something went wrong please signup again",
-							Toast.LENGTH_SHORT).show();
+				String message = "some thing went wrong please try again";
+				int code = MyJSONParser.AuthenticationParser(result);
+				if (code == NEXT_STEP) {
+					mSignupInterface
+							.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+				} else if (code == NOT_VERIFIED) {
+					message = "Already registered please check your mail for verification code";
+					mSignupInterface
+							.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+				} else if (code == ACTIVE) {
+					message = "Already an active user please click on login";
+				} else if (code == ERROR) {
+					mSubmitButton.setEnabled(true);
+					// initialized error message
+				}
+				if (code != NEXT_STEP) {
+					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
+							.show();
 				}
 			} else {
 				Toast.makeText(getActivity(),
 						"something went wrong please signup again",
 						Toast.LENGTH_SHORT).show();
+				mSubmitButton.setEnabled(true);
 			}
 
 		}

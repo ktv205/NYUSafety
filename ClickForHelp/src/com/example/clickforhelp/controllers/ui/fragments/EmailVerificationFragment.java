@@ -3,9 +3,11 @@ package com.example.clickforhelp.controllers.ui.fragments;
 import java.util.HashMap;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.controllers.ui.ForgotPasswordActivity;
 import com.example.clickforhelp.controllers.ui.HelperActivity;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.HttpManager;
+import com.example.clickforhelp.controllers.utils.MyJSONParser;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
@@ -27,22 +29,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class EmailVerificationFragment extends Fragment {
-	private final static String TAG = "EmailVerificationFragment";
-	private final static int CODE_EMPTY = 0;
-	private final static int RESULT_OK = 1;
-	private final static String CODE_ACCEPTED = "1", RESEND_CODE = "1";
-	private String code;
-	View view;
-	private EmailVerificationFragmentInterface emailVerificationFragmentInterface;
+	private final static String TAG = EmailVerificationFragment.class
+			.getSimpleName();
+	private final static int CODE_EMPTY = 0, RESULT_OK = 1, CODE_ACCEPTED = 1,
+			RESEND_CODE = 1, CODE_NOT_ACCEPTED = 0, RESEND_CODE_FAILED = 0;
+	private String mCode;
+	private static final String CODE_SENT_WAITING = "Please wait while we verify the code",
+			CODE_REQUEST_WATING = "Please wait while we resend the code";
+	View mView;
+	private EmailVerificationFragmentInterface mEmailVerificationFragmentInterface;
+	private Button mSubmitButton;
 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		try {
-			emailVerificationFragmentInterface = (EmailVerificationFragmentInterface) activity;
-		} catch (ClassCastException e) {
-			throw new ClassCastException(activity.toString()
-					+ " must implement OnHeadlineSelectedListener");
+		Log.d(TAG, getActivity().getComponentName().getClassName());
+		Log.d(TAG, ForgotPasswordActivity.class.getSimpleName());
+		if (getActivity().getComponentName().getShortClassName() == ForgotPasswordActivity.class
+				.getSimpleName()) {
+			try {
+				mEmailVerificationFragmentInterface = (EmailVerificationFragmentInterface) activity;
+			} catch (ClassCastException e) {
+				throw new ClassCastException(activity.toString()
+						+ " must implement OnHeadlineSelectedListener");
+			}
 		}
 	}
 
@@ -53,18 +63,18 @@ public class EmailVerificationFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		view = inflater.inflate(R.layout.fragment_verification, container,
+		mView = inflater.inflate(R.layout.fragment_verification, container,
 				false);
-		return view;
+		return mView;
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		getActivity().getActionBar().setTitle(R.string.verify);
-		TextView resendTextview = (TextView) view
+		TextView resendTextview = (TextView) mView
 				.findViewById(R.id.fverification_text_resend);
-		Button submitButton = (Button) view
+		mSubmitButton = (Button) mView
 				.findViewById(R.id.fverification_button_submit);
 		resendTextview.setOnClickListener(new OnClickListener() {
 
@@ -88,7 +98,7 @@ public class EmailVerificationFragment extends Fragment {
 
 			}
 		});
-		submitButton.setOnClickListener(new OnClickListener() {
+		mSubmitButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -108,12 +118,13 @@ public class EmailVerificationFragment extends Fragment {
 											Context.MODE_PRIVATE)
 									.getString(
 											AppPreferences.SharedPrefAuthentication.user_email,
-											""), code };
+											""), mCode };
 					RequestParams params = CommonFunctions.setParams(
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
 					Log.d(TAG, params.getURI());
 					new SendCodeAsyncTask().execute(params);
+					mSubmitButton.setEnabled(false);
 				}
 				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
 						.show();
@@ -122,11 +133,11 @@ public class EmailVerificationFragment extends Fragment {
 	}
 
 	public int getTextFromFields() {
-		EditText codeEdittext = (EditText) view
+		EditText codeEdittext = (EditText) mView
 				.findViewById(R.id.fverification_edit_code);
-		code = codeEdittext.getText().toString();
+		mCode = codeEdittext.getText().toString();
 		int flag;
-		if (code.isEmpty()) {
+		if (mCode.isEmpty()) {
 			flag = CODE_EMPTY;
 		} else {
 			flag = RESULT_OK;
@@ -143,8 +154,8 @@ public class EmailVerificationFragment extends Fragment {
 		protected void onPreExecute() {
 			super.onPreExecute();
 			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle("Loading...");
-			dialog.setMessage("Please wait while we verify the code");
+			dialog.setTitle(AppPreferences.IntentExtras.NEW_PASSWORD);
+			dialog.setMessage(CODE_SENT_WAITING);
 
 		}
 
@@ -157,26 +168,30 @@ public class EmailVerificationFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			dialog.dismiss();
-			if (result.contains(CODE_ACCEPTED)) {
-				Toast.makeText(getActivity(), "code accepted",
-						Toast.LENGTH_SHORT).show();
+			int code = MyJSONParser.AuthenticationParser(result);
+			if (code == CODE_ACCEPTED) {
 				HashMap<String, String> values = new HashMap<String, String>();
 				values.put(AppPreferences.SharedPrefAuthentication.flag,
 						AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
 				CommonFunctions.saveInPreferences(getActivity(),
 						AppPreferences.SharedPrefAuthentication.name, values);
-				if (getArguments().containsKey("new password")) {
-					emailVerificationFragmentInterface
-							.replaceWithNewPasswordFragment();
+				if (getArguments() != null) {
+					if (getArguments().containsKey(
+							AppPreferences.IntentExtras.NEW_PASSWORD)) {
+						mEmailVerificationFragmentInterface
+								.replaceWithNewPasswordFragment();
+					}
 				} else {
 					Intent intent = new Intent(getActivity(),
 							HelperActivity.class);
 					getActivity().startActivity(intent);
 					getActivity().finish();
 				}
-			} else {
-				Toast.makeText(getActivity(), "entered code is wrong",
+			} else if (code == CODE_NOT_ACCEPTED) {
+				Toast.makeText(getActivity(),
+						"entered code is wrong please try again",
 						Toast.LENGTH_SHORT).show();
+				mSubmitButton.setEnabled(true);
 			}
 		}
 
@@ -190,8 +205,8 @@ public class EmailVerificationFragment extends Fragment {
 		protected void onPreExecute() {
 			super.onPreExecute();
 			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle("Loading...");
-			dialog.setMessage("Please wait while we resend the code");
+			dialog.setTitle(AppPreferences.Others.LOADING);
+			dialog.setMessage(CODE_REQUEST_WATING);
 
 		}
 
@@ -204,11 +219,19 @@ public class EmailVerificationFragment extends Fragment {
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			dialog.dismiss();
-			if (result.contains(RESEND_CODE)) {
-				Toast.makeText(getActivity(), "code resent", Toast.LENGTH_SHORT)
+            Log.d(TAG,result);
+			if (result != null) {
+				String message = null;
+				int code = MyJSONParser.AuthenticationParser(result);
+				if (code == RESEND_CODE) {
+					message = "code resent";
+				} else if (code == RESEND_CODE_FAILED) {
+					message = "please try again";
+				}
+				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
 						.show();
 			} else {
-				Toast.makeText(getActivity(), "please try again",
+				Toast.makeText(getActivity(), "something went wrong",
 						Toast.LENGTH_SHORT).show();
 			}
 		}
