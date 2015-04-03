@@ -26,6 +26,10 @@ public class SendLocationsAsyncTask extends
 
 	}
 
+	public SendLocationsAsyncTask() {
+
+	}
+
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
@@ -33,13 +37,15 @@ public class SendLocationsAsyncTask extends
 
 	@Override
 	protected String doInBackground(RequestParams... params) {
-		return new HttpManager().sendUserData(params[0]);
+		return HttpManager.sendUserData(params[0]);
 	}
 
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
-		mUserLocations.getData(null);
+		if (mUserLocations != null) {
+			mUserLocations.getData(null);
+		}
 	}
 
 }

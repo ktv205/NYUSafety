@@ -1,5 +1,8 @@
 package com.example.clickforhelp.controllers.utils;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,12 +13,10 @@ import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.internal.mc;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.content.ComponentName;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,11 +31,9 @@ import android.util.Log;
 
 public class CommonFunctions {
 	private static final String TAG = CommonFunctions.class.getSimpleName();
-	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 	public static final String EXTRA_MESSAGE = "message";
 	public static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
-	private static GoogleCloudMessaging mGcm;
 	private static String mRegid;
 
 	public static boolean isConnected(Context context) {
@@ -48,19 +47,28 @@ public class CommonFunctions {
 		}
 	}
 
-	public static Boolean isOnline() {
-		boolean reachable = false;
-		try {
-			Process p1 = java.lang.Runtime.getRuntime().exec(
-					"ping -c 1 www.google.com");
-			int returnVal = p1.waitFor();
-			reachable = (returnVal == 0);
+	public static boolean hasActiveInternetConnection(Context context) {
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return reachable;
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					HttpURLConnection urlc = (HttpURLConnection) (new URL(
+							"http://clients3.google.com/generate_204")
+							.openConnection());
+					urlc.setRequestProperty("User-Agent", "Android");
+					urlc.setRequestProperty("Connection", "close");
+					urlc.setConnectTimeout(1500);
+					urlc.connect();
+					Log.d(TAG, "connected");
+				} catch (IOException e) {
+					Log.d(TAG, "Error checking internet connection");
+				}
+
+			}
+
+		}).start();
+
+		return true;
 	}
 
 	public static RequestParams setParams(String scheme, String authority,
@@ -266,7 +274,6 @@ public class CommonFunctions {
 
 	public static boolean checkIfGCMInfoIsSent(Context context) {
 		if (checkPlayServices(context)) {
-			mGcm = GoogleCloudMessaging.getInstance(context);
 			mRegid = getRegistrationId(context);
 			if (mRegid.isEmpty()) {
 				// registerInBackground();
@@ -342,18 +349,29 @@ public class CommonFunctions {
 		edit.commit();
 	}
 
-	public boolean isForeground(String myPackage, Context context) {
-		ActivityManager manager = (ActivityManager) context
+	public static Boolean isActivityRunning(Context context) {
+		ActivityManager activityManager = (ActivityManager) context
 				.getSystemService(Context.ACTIVITY_SERVICE);
-		List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager
-				.getRunningTasks(1);
+		List<RunningTaskInfo> services = activityManager
+				.getRunningTasks(Integer.MAX_VALUE);
+		boolean isActivityFound = false;
 
-		ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
-		if (componentInfo.getPackageName().equals(myPackage)) {
+		if (services.get(0).topActivity.getPackageName().toString()
+				.equalsIgnoreCase(context.getPackageName().toString())) {
+			isActivityFound = true;
+		}
+
+		if (isActivityFound) {
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	public static String getEmail(Context context) {
+		return CommonFunctions.getSharedPreferences(context,
+				AppPreferences.SharedPrefAuthentication.name).getString(
+				AppPreferences.SharedPrefAuthentication.user_email, "");
 	}
 
 }

@@ -111,6 +111,11 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
           </intent-filter>
         </receiver>
+         <receiver android:name="com.example.clickforhelp.controllers.receivers.NetworkConnectivityChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
 
         <service android:name="com.example.clickforhelp.controllers.services.GcmIntentService" />
         <service

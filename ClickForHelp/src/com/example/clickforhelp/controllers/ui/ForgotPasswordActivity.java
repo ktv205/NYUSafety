@@ -7,11 +7,12 @@ import com.example.clickforhelp.controllers.ui.fragments.NewPasswordFragment;
 import com.example.clickforhelp.controllers.ui.fragments.EmailFragment.EmailFragmentInterface;
 import com.example.clickforhelp.controllers.ui.fragments.EmailVerificationFragment.EmailVerificationFragmentInterface;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
+import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask.ServerResponse;
 import com.example.clickforhelp.models.AppPreferences;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app. FragmentManager;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,21 +21,23 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class ForgotPasswordActivity extends Activity implements
-		EmailFragmentInterface, EmailVerificationFragmentInterface {
-	private  FragmentManager  mFragmentManager;
+		EmailFragmentInterface, EmailVerificationFragmentInterface,
+		ServerResponse {
+	private FragmentManager mFragmentManager;
 	private FragmentTransaction mFragmentTransaction;
 	private final static String EMAILTAG = "EmailFragment";
 	private final static String VERFICATIONTAG = "EmailVerficationTAG";
 	private final static String NEWPASSWORDTAG = "NEWPASSWORDTAG";
-	//private final static String TAG = "ForgotPasswordActivity";
+
+	// private final static String TAG = "ForgotPasswordActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_forgotpassword);
 		if (CommonFunctions.isConnected(this)) {
-			 mFragmentManager = getFragmentManager();
-			mFragmentTransaction =  mFragmentManager.beginTransaction();
+			mFragmentManager = getFragmentManager();
+			mFragmentTransaction = mFragmentManager.beginTransaction();
 			Fragment fragment = getFragmentManager()
 					.findFragmentByTag(EMAILTAG);
 			Fragment newPasswordFragment = getFragmentManager()
@@ -42,18 +45,20 @@ public class ForgotPasswordActivity extends Activity implements
 			if (getIntent() != null) {
 				if (getIntent().hasExtra(AppPreferences.IntentExtras.CHANGE)) {
 					if (newPasswordFragment == null) {
-						mFragmentTransaction.replace(R.id.forgotpassword_linear,
+						mFragmentTransaction.replace(
+								R.id.forgotpassword_linear,
 								new NewPasswordFragment(), NEWPASSWORDTAG)
 								.commit();
 					}
 				} else {
 					if (fragment == null) {
-						mFragmentTransaction.replace(R.id.forgotpassword_linear,
+						mFragmentTransaction.replace(
+								R.id.forgotpassword_linear,
 								new EmailFragment(), EMAILTAG).commit();
 					}
 				}
 			} else {
-				//Log.d(TAG, "email fragment is null in onCreate");
+				// Log.d(TAG, "email fragment is null in onCreate");
 				mFragmentTransaction.replace(R.id.forgotpassword_linear,
 						new EmailFragment(), EMAILTAG).commit();
 			}
@@ -82,8 +87,8 @@ public class ForgotPasswordActivity extends Activity implements
 
 	@Override
 	public void replaceWithVerificationCodeFragment() {
-		mFragmentTransaction =  mFragmentManager.beginTransaction();
-		Fragment fragment =  mFragmentManager.findFragmentByTag(VERFICATIONTAG);
+		mFragmentTransaction = mFragmentManager.beginTransaction();
+		Fragment fragment = mFragmentManager.findFragmentByTag(VERFICATIONTAG);
 		if (fragment != null) {
 			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					VERFICATIONTAG).commit();
@@ -100,8 +105,8 @@ public class ForgotPasswordActivity extends Activity implements
 
 	@Override
 	public void replaceWithNewPasswordFragment() {
-		mFragmentTransaction =  mFragmentManager.beginTransaction();
-		Fragment fragment =  mFragmentManager.findFragmentByTag(NEWPASSWORDTAG);
+		mFragmentTransaction = mFragmentManager.beginTransaction();
+		Fragment fragment = mFragmentManager.findFragmentByTag(NEWPASSWORDTAG);
 		if (fragment != null) {
 			mFragmentTransaction.replace(R.id.forgotpassword_linear, fragment,
 					NEWPASSWORDTAG).commit();
@@ -114,13 +119,35 @@ public class ForgotPasswordActivity extends Activity implements
 
 	@Override
 	public void onBackPressed() {
-		Fragment fragment =  mFragmentManager.findFragmentByTag(VERFICATIONTAG);
+		Fragment fragment = mFragmentManager.findFragmentByTag(VERFICATIONTAG);
 		if (fragment != null && fragment.isVisible()) {
-			mFragmentTransaction =  mFragmentManager.beginTransaction();
+			mFragmentTransaction = mFragmentManager.beginTransaction();
 			mFragmentTransaction.replace(R.id.forgotpassword_linear,
 					new EmailFragment(), EMAILTAG).commit();
 		} else {
 			super.onBackPressed();
 		}
+	}
+
+	@Override
+	public void IntegerResponse(int response, int flag) {
+		Fragment emailFragment = mFragmentManager.findFragmentByTag(EMAILTAG);
+		Fragment verificationFragment = mFragmentManager
+				.findFragmentByTag(VERFICATIONTAG);
+		Fragment newPasswordFragment = mFragmentManager
+				.findFragmentByTag(NEWPASSWORDTAG);
+		if (emailFragment != null && emailFragment.isVisible()) {
+			((EmailFragment) emailFragment).responseFromServer(response);
+		} else if (newPasswordFragment != null
+				&& newPasswordFragment.isVisible()) {
+			((NewPasswordFragment) newPasswordFragment)
+					.responseFromServer(response);
+		} else if (verificationFragment != null
+				&& verificationFragment.isVisible()) {
+			((EmailVerificationFragment) verificationFragment)
+					.responseFromServer(response, flag);
+
+		}
+
 	}
 }

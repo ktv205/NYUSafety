@@ -1,7 +1,7 @@
 package com.example.clickforhelp.controllers.receivers;
 
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.models.AppPreferences;
+import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,20 +16,16 @@ public class BatteryLevelReceiver extends BroadcastReceiver {
 		// .show();
 		// int status = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
 		// int value = CommonFunctions.userLocationUpdatePreference(context);
-		if (CommonFunctions
-				.getSharedPreferences(context,
-						AppPreferences.SharedPrefAuthentication.name)
-				.getString(AppPreferences.SharedPrefAuthentication.flag, "")
-				.isEmpty()
-				|| CommonFunctions.getSharedPreferences(context,
-						AppPreferences.SharedPrefAuthentication.name)
-						.getString(
-								AppPreferences.SharedPrefAuthentication.flag,
-								"") == "-1") {
-			// Dont do anything since user is not logged in
-
+		if (CommonFunctions.checkLoggedIn(context)) {
+			if (CommonFunctions.isActivityRunning(context)) {
+				// as the activity is in foreground don't do anything
+			} else {
+				if (CommonFunctions.isConnected(context)) {
+					new InternetConnectionAsyncTask(context);
+				}
+			}
 		} else {
-			CommonFunctions.settingUserPreferenceLocationUpdates(context);
+			// Do do anything since user is not logged in
 		}
 
 	}

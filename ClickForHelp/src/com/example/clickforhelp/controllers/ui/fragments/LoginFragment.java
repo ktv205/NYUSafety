@@ -6,8 +6,7 @@ import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.ui.ForgotPasswordActivity;
 import com.example.clickforhelp.controllers.ui.HelperActivity;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.controllers.utils.HttpManager;
-import com.example.clickforhelp.controllers.utils.MyJSONParser;
+import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 //import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
@@ -16,11 +15,8 @@ import com.example.clickforhelp.models.UserModel;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginFragment extends Fragment {
-	private final String TAG = LoginFragment.class.getSimpleName();
+	// private final String TAG = LoginFragment.class.getSimpleName();
 	private View mView;
 	private String mEmail, mPassword;
 	private final static int EMAIL_EMPTY = 1;
@@ -41,7 +37,7 @@ public class LoginFragment extends Fragment {
 	private final static int LOGIN_SUCCESS = 1;
 
 	private LoginInterface mLoginInterface;
-	
+
 	private Button mLoginButton;
 
 	@Override
@@ -85,7 +81,7 @@ public class LoginFragment extends Fragment {
 
 			}
 		});
-		TextView forgotText = (TextView)mView
+		TextView forgotText = (TextView) mView
 				.findViewById(R.id.login_text_forgot);
 		forgotText.setOnClickListener(new OnClickListener() {
 
@@ -97,8 +93,7 @@ public class LoginFragment extends Fragment {
 
 			}
 		});
-		mLoginButton = (Button)mView
-				.findViewById(R.id.login_button_submit);
+		mLoginButton = (Button) mView.findViewById(R.id.login_button_submit);
 		if (CommonFunctions.isConnected(getActivity())) {
 			mLoginButton.setOnClickListener(new OnClickListener() {
 
@@ -117,7 +112,11 @@ public class LoginFragment extends Fragment {
 						RequestParams params = CommonFunctions.setParams(
 								ServerVariables.SCHEME,
 								ServerVariables.AUTHORITY, paths);
-						new SendLoginDetailsAsyncTask().execute(params);
+						new CommonResultAsyncTask(getActivity(),
+								"Please wait while we log you in", 0)
+								.execute(params);
+						mLoginButton.setEnabled(false);
+
 					}
 					if (message != null) {
 						Toast.makeText(getActivity(), message,
@@ -154,57 +153,81 @@ public class LoginFragment extends Fragment {
 		mUser.setPassword(mPassword);
 	}
 
-	public class SendLoginDetailsAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-		ProgressDialog dialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle("Loading...");
-			dialog.setMessage("Please wait while we log you in");
-			dialog.show();
-
+	public void responseFromServer(int code) {
+		if (code == LOGIN_SUCCESS) {
+			HashMap<String, String> values = new HashMap<String, String>();
+			values.put(AppPreferences.SharedPrefAuthentication.user_email,
+					mUser.getEmail());
+			values.put(AppPreferences.SharedPrefAuthentication.password,
+					mPassword);
+			values.put(AppPreferences.SharedPrefAuthentication.flag,
+					AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
+			CommonFunctions.saveInPreferences(getActivity(),
+					AppPreferences.SharedPrefAuthentication.name, values);
+			Intent intent = new Intent(getActivity(), HelperActivity.class);
+			getActivity().startActivity(intent);
+			getActivity().finish();
+		} else {
+			Toast.makeText(getActivity(), "email or password mismatch",
+					Toast.LENGTH_SHORT).show();
+			mLoginButton.setEnabled(true);
 		}
 
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-			Log.d(TAG,result);
-			if (result != null) {
-				int code=MyJSONParser.AuthenticationParser(result);
-				if (code==LOGIN_SUCCESS) {
-					HashMap<String, String> values = new HashMap<String, String>();
-					values.put(
-							AppPreferences.SharedPrefAuthentication.user_email,
-							mUser.getEmail());
-					values.put(
-							AppPreferences.SharedPrefAuthentication.password,
-							mPassword);
-					values.put(AppPreferences.SharedPrefAuthentication.flag,
-							AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
-					CommonFunctions.saveInPreferences(getActivity(),
-							AppPreferences.SharedPrefAuthentication.name,
-							values);
-					Intent intent = new Intent(getActivity(),
-							HelperActivity.class);
-					getActivity().startActivity(intent);
-					getActivity().finish();
-				} else {
-					Toast.makeText(getActivity(), "email or password mismatch",
-							Toast.LENGTH_SHORT).show();
-				}
-			}else{
-				Toast.makeText(getActivity(), "some thing went wrong please try again",Toast.LENGTH_SHORT).show();
-			}
-		}
 	}
+
+	// public class SendLoginDetailsAsyncTask extends
+	// AsyncTask<RequestParams, Void, String> {
+	// ProgressDialog dialog;
+	//
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// dialog = new ProgressDialog(getActivity());
+	// dialog.setTitle("Loading...");
+	// dialog.setMessage("Please wait while we log you in");
+	// dialog.show();
+	//
+	// }
+	//
+	// @Override
+	// protected String doInBackground(RequestParams... params) {
+	// return HttpManager.sendUserData(params[0]);
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(String result) {
+	// super.onPostExecute(result);
+	// dialog.dismiss();
+	// Log.d(TAG, result);
+	// if (result != null) {
+	// int code = MyJSONParser.AuthenticationParser(result);
+	// if (code == LOGIN_SUCCESS) {
+	// HashMap<String, String> values = new HashMap<String, String>();
+	// values.put(
+	// AppPreferences.SharedPrefAuthentication.user_email,
+	// mUser.getEmail());
+	// values.put(
+	// AppPreferences.SharedPrefAuthentication.password,
+	// mPassword);
+	// values.put(AppPreferences.SharedPrefAuthentication.flag,
+	// AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
+	// CommonFunctions.saveInPreferences(getActivity(),
+	// AppPreferences.SharedPrefAuthentication.name,
+	// values);
+	// Intent intent = new Intent(getActivity(),
+	// HelperActivity.class);
+	// getActivity().startActivity(intent);
+	// getActivity().finish();
+	// } else {
+	// Toast.makeText(getActivity(), "email or password mismatch",
+	// Toast.LENGTH_SHORT).show();
+	// }
+	// } else {
+	// Toast.makeText(getActivity(),
+	// "some thing went wrong please try again",
+	// Toast.LENGTH_SHORT).show();
+	// }
+	// }
+	// }
 
 }

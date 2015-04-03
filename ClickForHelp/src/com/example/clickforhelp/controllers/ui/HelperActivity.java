@@ -7,6 +7,8 @@ import java.util.TimerTask;
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.HttpManager;
+import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
+import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask.InternetConntection;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask.GetOtherUsersLocations;
 import com.example.clickforhelp.models.AppPreferences;
@@ -33,9 +35,10 @@ import android.widget.Button;
 import android.widget.Toast;
 
 public class HelperActivity extends Activity implements
-		OnConnectionFailedListener, ConnectionCallbacks, GetOtherUsersLocations {
+		OnConnectionFailedListener, ConnectionCallbacks,
+		GetOtherUsersLocations, InternetConntection {
 
-	private static final String TAG = HelperActivity.class.getSimpleName();
+	// private static final String TAG = HelperActivity.class.getSimpleName();
 	private Context mContext;
 	public static final int SLEEP_AUTHENTICATION = 3000;
 	private Timer mTimer;
@@ -51,22 +54,7 @@ public class HelperActivity extends Activity implements
 		mContext = getApplicationContext();
 		overridePendingTransition(0, 0);
 		if (CommonFunctions.isConnected(mContext)) {
-			setContentView(R.layout.activity_helper);
-			setActionBar();
-			mHandler = new Handler();
-			mTimer = new Timer();
-			if (CommonFunctions.checkLoggedIn(mContext)) {
-				if (CommonFunctions.checkIfGCMInfoIsSent(mContext)) {
-					// nothing to do if already info is sent
-				} else {
-					registerInBackground();
-
-				}
-				startGoogleApiClient();
-
-			} else {
-				pauseActiviy();
-			}
+			new InternetConnectionAsyncTask(this, true).execute();
 		} else {
 			setNoConnectionView();
 		}
@@ -106,8 +94,9 @@ public class HelperActivity extends Activity implements
 				new SendLocationsAsyncTask(HelperActivity.this)
 						.execute(locationParams);
 			}
-		}else{
-			Toast.makeText(mContext, "location is null", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(mContext, "location is null", Toast.LENGTH_SHORT)
+					.show();
 		}
 
 	}
@@ -234,7 +223,7 @@ public class HelperActivity extends Activity implements
 			AsyncTask<RequestParams, Void, String> {
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return HttpManager.sendUserData(params[0]);
 		}
 
 		@Override
@@ -242,6 +231,31 @@ public class HelperActivity extends Activity implements
 			super.onPostExecute(result);
 		}
 
+	}
+
+	@Override
+	public void isConnected(boolean connected) {
+		if (connected == true) {
+			setContentView(R.layout.activity_helper);
+			setActionBar();
+			mHandler = new Handler();
+			mTimer = new Timer();
+			if (CommonFunctions.checkLoggedIn(mContext)) {
+				if (CommonFunctions.checkIfGCMInfoIsSent(mContext)) {
+					// nothing to do if already info is sent
+				} else {
+					registerInBackground();
+
+				}
+				startGoogleApiClient();
+
+			} else {
+				pauseActiviy();
+			}
+
+		} else {
+			setNoConnectionView();
+		}
 	}
 
 }

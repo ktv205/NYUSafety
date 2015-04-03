@@ -9,6 +9,7 @@ import com.example.clickforhelp.controllers.ui.fragments.LoginFragment.LoginInte
 import com.example.clickforhelp.controllers.ui.fragments.SignupFragment.SignupInterface;
 import com.example.clickforhelp.controllers.ui.fragments.WelcomeFragment.OnClickAuthentication;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
+import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask.ServerResponse;
 import com.example.clickforhelp.models.AppPreferences;
 
 import android.app.Activity;
@@ -22,8 +23,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class AuthenticationActivity extends Activity implements
-		OnClickAuthentication, LoginInterface, SignupInterface {
-	//private final static String TAG = "AuthenticationActivity";
+		OnClickAuthentication, LoginInterface, SignupInterface, ServerResponse {
+	// private final static String TAG = "AuthenticationActivity";
 	private final static String WELCOMETAG = "WelcomeFragmentTAG";
 	private final static String LOGINTAG = "LoginFragmentTAG";
 	private final static String SIGNUPTAG = "SignupFragmentTAG";
@@ -46,8 +47,9 @@ public class AuthenticationActivity extends Activity implements
 					SIGNUPTAG);
 			if (fragment == null
 					&& (loginFragment == null && signupFragment == null)) {
-				//Log.d(TAG, "welcome fragment is null in onCreate");
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
+				// Log.d(TAG, "welcome fragment is null in onCreate");
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear,
 						new WelcomeFragment(), WELCOMETAG).commit();
 			}
 		} else {
@@ -88,7 +90,7 @@ public class AuthenticationActivity extends Activity implements
 		super.onResume();
 		if (!CommonFunctions.isConnected(this)) {
 			setNoConnectionView();
-			
+
 		}
 	}
 
@@ -114,21 +116,24 @@ public class AuthenticationActivity extends Activity implements
 
 			Fragment fragment = mFragmentManager.findFragmentByTag(LOGINTAG);
 			if (fragment != null) {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, LOGINTAG);
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear, fragment, LOGINTAG);
 			} else {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear,
 						new LoginFragment(), LOGINTAG);
 			}
 
 		} else if (flag == AppPreferences.Flags.SIGNUP_FLAG) {
 			Fragment fragment = mFragmentManager.findFragmentByTag(SIGNUPTAG);
 			if (fragment != null) {
-				//Log.d(TAG, "fragment is not null");
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, SIGNUPTAG);
+				// Log.d(TAG, "fragment is not null");
+				mFragmentTransaction
+						.replace(R.id.authentication_parent0_linear, fragment,
+								SIGNUPTAG);
 			} else {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear,
 						new SignupFragment(), SIGNUPTAG);
 			}
 		}
@@ -188,20 +193,24 @@ public class AuthenticationActivity extends Activity implements
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			Fragment fragment = mFragmentManager.findFragmentByTag(LOGINTAG);
 			if (fragment != null) {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, LOGINTAG).commit();
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear, fragment, LOGINTAG)
+						.commit();
 			} else {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear,
 						new LoginFragment(), LOGINTAG).commit();
 			}
 		} else if (flag == AppPreferences.Flags.SIGNUP_SUCCESS) {
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			Fragment fragment = mFragmentManager.findFragmentByTag(VERIFYTAG);
 			if (fragment != null) {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
-						fragment, VERIFYTAG).commit();
+				mFragmentTransaction
+						.replace(R.id.authentication_parent0_linear, fragment,
+								VERIFYTAG).commit();
 			} else {
-				mFragmentTransaction.replace(R.id.authentication_parent0_linear,
+				mFragmentTransaction.replace(
+						R.id.authentication_parent0_linear,
 						new EmailVerificationFragment(), VERIFYTAG).commit();
 			}
 		}
@@ -218,5 +227,24 @@ public class AuthenticationActivity extends Activity implements
 			mFragmentTransaction.replace(R.id.authentication_parent0_linear,
 					new SignupFragment(), SIGNUPTAG).commit();
 		}
+	}
+
+	@Override
+	public void IntegerResponse(int response,int flag) {
+		Fragment loginFragment = mFragmentManager.findFragmentByTag(LOGINTAG);
+		Fragment signupFragment = mFragmentManager.findFragmentByTag(SIGNUPTAG);
+		Fragment verificationFragment = mFragmentManager
+				.findFragmentByTag(VERIFYTAG);
+		if (loginFragment != null && loginFragment.isVisible()) {
+			((LoginFragment) loginFragment).responseFromServer(response);
+		} else if (signupFragment != null && signupFragment.isVisible()) {
+			((SignupFragment) signupFragment).responseFromServer(response);
+		} else if (verificationFragment != null
+				&& verificationFragment.isVisible()) {
+			((EmailVerificationFragment) verificationFragment)
+					.responseFromServer(response,flag);
+
+		}
+
 	}
 }

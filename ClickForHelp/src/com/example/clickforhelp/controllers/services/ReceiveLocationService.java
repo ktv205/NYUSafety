@@ -74,12 +74,12 @@ public class ReceiveLocationService extends Service {
 			AsyncTask<RequestParams, Void, String> {
 		@Override
 		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
+			return HttpManager.sendUserData(params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
-			ArrayList<LocationDetailsModel> locations = new MyJSONParser()
+			ArrayList<LocationDetailsModel> locations =MyJSONParser
 					.parseLocation(result);
 			Intent intent = new Intent("com.example.clickforhelp.action_send");
 			intent.putParcelableArrayListExtra(AppPreferences.IntentExtras.LOCATIONS, locations);

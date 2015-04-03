@@ -5,10 +5,12 @@
     android:orientation="vertical"
     android:gravity="center_vertical" >
     <EditText 
+        android:id="@+id/feedback_edittext"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:hint="your feedback here..."/>
     <Button 
+        android:id="@+id/feedback_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="send"/>

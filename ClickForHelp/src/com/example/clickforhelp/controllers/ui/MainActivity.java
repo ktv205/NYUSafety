@@ -3,8 +3,11 @@ package com.example.clickforhelp.controllers.ui;
 import java.util.ArrayList;
 
 import com.example.clickforhelp.controllers.services.ActivityRecognitionService;
+import com.example.clickforhelp.controllers.services.ReceiveLocationService;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
+import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask;
+import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask.InternetConntection;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask.GetOtherUsersLocations;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.LocationDetailsModel;
@@ -44,13 +47,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnMapReadyCallback,
 		OnConnectionFailedListener,
 		com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks,
 		LocationListener, LocationSource, OnMapLoadedCallback,
-		GetOtherUsersLocations {
+		GetOtherUsersLocations, InternetConntection {
 
 	// TAG for debugging
 	private static final String TAG = MainActivity.class.getSimpleName();
@@ -83,6 +87,18 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	private IntentFilter mIntentFilter;
 	private BroadcastReceiver mReceiver;
 
+	// locationParams
+
+	private RequestParams mLocationParams;
+
+	// TextView of people around
+
+	private TextView mPeopleTextView;
+
+	// Button for asking help
+
+	private Button mHelpButton;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -97,14 +113,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 			// getting user email to be sent to server in various calls to
 			// server
-			getUserEmail();
+			user_email = CommonFunctions.getEmail(mContext);
 
 			// setting a broadcast listener for locations of other users
 			setFilterAndCategoryForLocationReceiver();
 			registerLocationReceiverBroadcastListener();
-
-			// Markers
-			mMarkers = new ArrayList<Marker>();
+			//
+			// // Markers
+			// mMarkers = new ArrayList<Marker>();
 
 		} else {
 			setNoConnectionView();
@@ -115,7 +131,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		mGoogleApiClient.disconnect();
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.disconnect();
+		}
+		if (mReceiver != null) {
+			this.unregisterReceiver(mReceiver);
+		}
 	}
 
 	@Override
@@ -138,8 +159,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	// LocationSource interface methods
 	@Override
 	public void activate(OnLocationChangedListener arg0) {
-		Toast.makeText(mContext, "in onLocationChangedListener",
-				Toast.LENGTH_SHORT).show();
+		// Toast.makeText(mContext, "in onLocationChangedListener",
+		// Toast.LENGTH_SHORT).show();
 		mLocationChangedListener = arg0;
 
 	}
@@ -152,23 +173,23 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	// LocationListner interface method
 	@Override
 	public void onLocationChanged(Location location) {
-		Toast.makeText(
-				mContext,
-				CommonFunctions
-						.getSharedPreferences(
-								mContext,
-								AppPreferences.SharedPrefActivityRecognition.activityType)
-						.getString(
-								AppPreferences.SharedPrefActivityRecognition.type,
-								AppPreferences.SharedPrefActivityRecognition.WALKING),
-				Toast.LENGTH_SHORT).show();
-		if (mLocationChangedListener != null && location!=null) {
+		// Toast.makeText(
+		// mContext,
+		// CommonFunctions
+		// .getSharedPreferences(
+		// mContext,
+		// AppPreferences.SharedPrefActivityRecognition.activityType)
+		// .getString(
+		// AppPreferences.SharedPrefActivityRecognition.type,
+		// AppPreferences.SharedPrefActivityRecognition.WALKING),
+		// Toast.LENGTH_SHORT).show();
+		if (mLocationChangedListener != null && location != null) {
 			mLocationChangedListener.onLocationChanged(location);
-			RequestParams locationParams = CommonFunctions
+			mLocationParams = CommonFunctions
 					.buildLocationUpdateParams(user_email,
 							location.getLatitude(), location.getLongitude());
-			if (CommonFunctions.isConnected(this)) {
-				new SendLocationsAsyncTask(this).execute(locationParams);
+			if (CommonFunctions.isConnected(mContext)) {
+				new InternetConnectionAsyncTask(this, true).execute();
 			}
 		}
 
@@ -204,7 +225,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	@Override
 	public void onMapLoaded() {
-		Toast.makeText(mContext, "mapLoaded", Toast.LENGTH_SHORT).show();
+		// Toast.makeText(mContext, "mapLoaded", Toast.LENGTH_SHORT).show();
 
 		mGoogleMap.setMyLocationEnabled(true);
 		mGoogleMap.setLocationSource(this);
@@ -216,6 +237,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	public void getData(LocationDetailsModel locations) {
 		Toast.makeText(mContext, "do something here", Toast.LENGTH_SHORT)
 				.show();
+
+	}
+
+	@Override
+	public void isConnected(boolean connected) {
+		Log.d(TAG, String.valueOf(connected));
+		if (connected) {
+			new SendLocationsAsyncTask(this).execute(mLocationParams);
+		}
 
 	}
 
@@ -310,12 +340,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 				mGoogleApiClient, mLocationRequest, this);
 	}
 
-	public void getUserEmail() {
-		user_email = CommonFunctions.getSharedPreferences(mContext,
-				AppPreferences.SharedPrefAuthentication.name).getString(
-				AppPreferences.SharedPrefAuthentication.user_email, "");
-	}
-
 	public void fillMap() {
 		mLastLocation = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
@@ -330,6 +354,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	}
 
 	public void setFilterAndCategoryForLocationReceiver() {
+		// Log.d(TAG, "in setFilterAnd ");
 		mIntentFilter = new IntentFilter("com.example.clickforhelp.action_send");
 		mIntentFilter.addCategory("com.example.clickforhelp");
 	}
@@ -338,7 +363,21 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d(TAG, "in onReceive of broadcast receiver");
+				// Log.d(TAG, "in onReceive of broadcast receiver");
+				new Thread(new Runnable() {
+					public void run() {
+						try {
+							Thread.sleep(10000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						// Log.d(TAG,
+						// "in background thread of receiver broastcast listener");
+						startService(new Intent(mContext,
+								ReceiveLocationService.class));
+					}
+				}).start();
 			}
 		};
 		this.registerReceiver(mReceiver, mIntentFilter);

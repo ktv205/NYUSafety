@@ -4,8 +4,7 @@ import java.util.HashMap;
 
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.controllers.utils.HttpManager;
-import com.example.clickforhelp.controllers.utils.MyJSONParser;
+import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 import com.example.clickforhelp.models.RequestParams;
@@ -13,8 +12,6 @@ import com.example.clickforhelp.models.UserModel;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
 import android.os.Bundle;
 //import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,7 +25,7 @@ import android.widget.Toast;
 
 public class SignupFragment extends Fragment {
 	private View mView;
-	//private final String TAG = SignupFragment.class.getSimpleName();
+	// private final String TAG = SignupFragment.class.getSimpleName();
 	private final static int NAME_EMPTY = 0, EMAIL_EMPTY = 1,
 			PASSWORD_EMPTY = 2, RETYPE_EMPTY = 3, DONT_MATCH = 4,
 			RESULT_OK = 5, INVALID_EMAIL = 6, PHONE_EMPTY = 7, NEXT_STEP = 1,
@@ -110,7 +107,8 @@ public class SignupFragment extends Fragment {
 						RequestParams params = CommonFunctions.setParams(
 								ServerVariables.SCHEME,
 								ServerVariables.AUTHORITY, paths);
-						new SendSignupDetailsAsyncTask().execute(params);
+						new CommonResultAsyncTask(getActivity(), DETAILS_WAIT,
+								0).execute(params);
 						mSubmitButton.setEnabled(false);
 					}
 					if (message != null) {
@@ -179,56 +177,76 @@ public class SignupFragment extends Fragment {
 		}
 	}
 
-	public class SendSignupDetailsAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-
-		ProgressDialog dialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(AppPreferences.Others.LOADING);
-			dialog.setMessage(DETAILS_WAIT);
+	public void responseFromServer(int code) {
+		String message = "some thing went wrong please try again";
+		if (code == NEXT_STEP) {
+			mSignupInterface.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+		} else if (code == NOT_VERIFIED) {
+			message = "Already registered please check your mail for verification code";
+			mSignupInterface.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+		} else if (code == ACTIVE) {
+			message = "Already an active user please click on login";
+		} else if (code == ERROR) {
+			mSubmitButton.setEnabled(true);
+			// initialized error message
 		}
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			if (result != null) {
-				String message = "some thing went wrong please try again";
-				int code = MyJSONParser.AuthenticationParser(result);
-				if (code == NEXT_STEP) {
-					mSignupInterface
-							.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
-				} else if (code == NOT_VERIFIED) {
-					message = "Already registered please check your mail for verification code";
-					mSignupInterface
-							.switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
-				} else if (code == ACTIVE) {
-					message = "Already an active user please click on login";
-				} else if (code == ERROR) {
-					mSubmitButton.setEnabled(true);
-					// initialized error message
-				}
-				if (code != NEXT_STEP) {
-					Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
-							.show();
-				}
-			} else {
-				Toast.makeText(getActivity(),
-						"something went wrong please signup again",
-						Toast.LENGTH_SHORT).show();
-				mSubmitButton.setEnabled(true);
-			}
-
+		if (code != NEXT_STEP) {
+			Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
 		}
 
 	}
+
+	// public class SendSignupDetailsAsyncTask extends
+	// AsyncTask<RequestParams, Void, String> {
+	//
+	// ProgressDialog dialog;
+	//
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// dialog = new ProgressDialog(getActivity());
+	// dialog.setTitle(AppPreferences.Others.LOADING);
+	// dialog.setMessage(DETAILS_WAIT);
+	// }
+	//
+	// @Override
+	// protected String doInBackground(RequestParams... params) {
+	// return HttpManager.sendUserData(params[0]);
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(String result) {
+	// super.onPostExecute(result);
+	// if (result != null) {
+	// String message = "some thing went wrong please try again";
+	// int code = MyJSONParser.AuthenticationParser(result);
+	// if (code == NEXT_STEP) {
+	// mSignupInterface
+	// .switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+	// } else if (code == NOT_VERIFIED) {
+	// message =
+	// "Already registered please check your mail for verification code";
+	// mSignupInterface
+	// .switchToLogin(AppPreferences.Flags.SIGNUP_SUCCESS);
+	// } else if (code == ACTIVE) {
+	// message = "Already an active user please click on login";
+	// } else if (code == ERROR) {
+	// mSubmitButton.setEnabled(true);
+	// // initialized error message
+	// }
+	// if (code != NEXT_STEP) {
+	// Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
+	// .show();
+	// }
+	// } else {
+	// Toast.makeText(getActivity(),
+	// "something went wrong please signup again",
+	// Toast.LENGTH_SHORT).show();
+	// mSubmitButton.setEnabled(true);
+	// }
+	//
+	// }
+	//
+	// }
 
 }

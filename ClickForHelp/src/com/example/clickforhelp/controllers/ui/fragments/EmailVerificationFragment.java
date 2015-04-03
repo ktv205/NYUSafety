@@ -6,17 +6,14 @@ import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.ui.ForgotPasswordActivity;
 import com.example.clickforhelp.controllers.ui.HelperActivity;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.controllers.utils.HttpManager;
-import com.example.clickforhelp.controllers.utils.MyJSONParser;
+import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +36,8 @@ public class EmailVerificationFragment extends Fragment {
 	View mView;
 	private EmailVerificationFragmentInterface mEmailVerificationFragmentInterface;
 	private Button mSubmitButton;
+	private static final int RESEND_FLAG = 0;
+	private static final int SUBMIT_FLAG = 1;
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -84,17 +83,13 @@ public class EmailVerificationFragment extends Fragment {
 						"public",
 						"index.php",
 						"verificationcode",
-						getActivity()
-								.getSharedPreferences(
-										AppPreferences.SharedPrefAuthentication.name,
-										Context.MODE_PRIVATE)
-								.getString(
-										AppPreferences.SharedPrefAuthentication.user_email,
-										"") };
+						CommonFunctions.getEmail(getActivity()
+								.getApplicationContext()) };
 				RequestParams params = CommonFunctions.setParams(
 						AppPreferences.ServerVariables.SCHEME,
 						AppPreferences.ServerVariables.AUTHORITY, values);
-				new RequestVerificationAsyncTask().execute(params);
+				new CommonResultAsyncTask(getActivity(), CODE_REQUEST_WATING,
+						RESEND_FLAG).execute(params);
 
 			}
 		});
@@ -123,7 +118,8 @@ public class EmailVerificationFragment extends Fragment {
 							AppPreferences.ServerVariables.SCHEME,
 							AppPreferences.ServerVariables.AUTHORITY, values);
 					Log.d(TAG, params.getURI());
-					new SendCodeAsyncTask().execute(params);
+					new CommonResultAsyncTask(getActivity(), CODE_SENT_WAITING,
+							SUBMIT_FLAG).execute(params);
 					mSubmitButton.setEnabled(false);
 				}
 				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
@@ -146,29 +142,8 @@ public class EmailVerificationFragment extends Fragment {
 
 	}
 
-	public class SendCodeAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-		ProgressDialog dialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(AppPreferences.IntentExtras.NEW_PASSWORD);
-			dialog.setMessage(CODE_SENT_WAITING);
-
-		}
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-			int code = MyJSONParser.AuthenticationParser(result);
+	public void responseFromServer(int code, int flag) {
+		if (flag == SUBMIT_FLAG) {
 			if (code == CODE_ACCEPTED) {
 				HashMap<String, String> values = new HashMap<String, String>();
 				values.put(AppPreferences.SharedPrefAuthentication.flag,
@@ -192,49 +167,112 @@ public class EmailVerificationFragment extends Fragment {
 						"entered code is wrong please try again",
 						Toast.LENGTH_SHORT).show();
 				mSubmitButton.setEnabled(true);
-			}
-		}
-
-	}
-
-	public class RequestVerificationAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-		ProgressDialog dialog;
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(AppPreferences.Others.LOADING);
-			dialog.setMessage(CODE_REQUEST_WATING);
-
-		}
-
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return new HttpManager().sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-            Log.d(TAG,result);
-			if (result != null) {
-				String message = null;
-				int code = MyJSONParser.AuthenticationParser(result);
-				if (code == RESEND_CODE) {
-					message = "code resent";
-				} else if (code == RESEND_CODE_FAILED) {
-					message = "please try again";
-				}
-				Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
-						.show();
 			} else {
-				Toast.makeText(getActivity(), "something went wrong",
+				Toast.makeText(getActivity(),
+						"something went wrong please try again",
 						Toast.LENGTH_SHORT).show();
 			}
+		} else if (flag == RESEND_FLAG) {
+			String message = "some thing went wrong please try again";
+			if (code == RESEND_CODE) {
+				message = "code resent";
+			} else if (code == RESEND_CODE_FAILED) {
+				message = "please try again";
+			}
+			Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
 		}
 
 	}
+	//
+	// public class SendCodeAsyncTask extends
+	// AsyncTask<RequestParams, Void, String> {
+	// ProgressDialog dialog;
+	//
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// dialog = new ProgressDialog(getActivity());
+	// dialog.setTitle(AppPreferences.IntentExtras.NEW_PASSWORD);
+	// dialog.setMessage(CODE_SENT_WAITING);
+	//
+	// }
+	//
+	// @Override
+	// protected String doInBackground(RequestParams... params) {
+	// return HttpManager.sendUserData(params[0]);
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(String result) {
+	// super.onPostExecute(result);
+	// dialog.dismiss();
+	// int code = MyJSONParser.AuthenticationParser(result);
+	// if (code == CODE_ACCEPTED) {
+	// HashMap<String, String> values = new HashMap<String, String>();
+	// values.put(AppPreferences.SharedPrefAuthentication.flag,
+	// AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
+	// CommonFunctions.saveInPreferences(getActivity(),
+	// AppPreferences.SharedPrefAuthentication.name, values);
+	// if (getArguments() != null) {
+	// if (getArguments().containsKey(
+	// AppPreferences.IntentExtras.NEW_PASSWORD)) {
+	// mEmailVerificationFragmentInterface
+	// .replaceWithNewPasswordFragment();
+	// }
+	// } else {
+	// Intent intent = new Intent(getActivity(),
+	// HelperActivity.class);
+	// getActivity().startActivity(intent);
+	// getActivity().finish();
+	// }
+	// } else if (code == CODE_NOT_ACCEPTED) {
+	// Toast.makeText(getActivity(),
+	// "entered code is wrong please try again",
+	// Toast.LENGTH_SHORT).show();
+	// mSubmitButton.setEnabled(true);
+	// }
+	// }
+	//
+	// }
+	//
+	// public class RequestVerificationAsyncTask extends
+	// AsyncTask<RequestParams, Void, String> {
+	// ProgressDialog dialog;
+	//
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// dialog = new ProgressDialog(getActivity());
+	// dialog.setTitle(AppPreferences.Others.LOADING);
+	// dialog.setMessage(CODE_REQUEST_WATING);
+	//
+	// }
+	//
+	// @Override
+	// protected String doInBackground(RequestParams... params) {
+	// return HttpManager.sendUserData(params[0]);
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(String result) {
+	// super.onPostExecute(result);
+	// dialog.dismiss();
+	// Log.d(TAG, result);
+	// if (result != null) {
+	// String message = null;
+	// int code = MyJSONParser.AuthenticationParser(result);
+	// if (code == RESEND_CODE) {
+	// message = "code resent";
+	// } else if (code == RESEND_CODE_FAILED) {
+	// message = "please try again";
+	// }
+	// Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT)
+	// .show();
+	// } else {
+	// Toast.makeText(getActivity(), "something went wrong",
+	// Toast.LENGTH_SHORT).show();
+	// }
+	// }
+	//
+	// }
 }

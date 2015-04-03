@@ -13,6 +13,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -20,18 +21,22 @@ import android.os.IBinder;
 
 public class LocationUpdateService extends Service implements
 		OnConnectionFailedListener, ConnectionCallbacks, LocationListener {
-	//private static final String TAG = "LocationUpdateService";
+	// private static final String TAG = LocationUpdateService.class
+	// .getSimpleName();
 	private GoogleApiClient mGoogleApiClient;
 	private LocationRequest mLocationRequest;
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
 	public boolean high_accuracy = false;
+	private Context mContext;
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		// Log.d(TAG, "here in onStartCommand");
 		if (intent != null) {
 			if (intent.hasExtra(AppPreferences.IntentExtras.HIGH_ACCURACY)) {
 				high_accuracy = true;
 			}
 		}
+		mContext = getApplicationContext();
 		buildGoogleApiClient();
 		return START_STICKY;
 	}
@@ -94,12 +99,18 @@ public class LocationUpdateService extends Service implements
 
 	@Override
 	public void onLocationChanged(Location arg0) {
-		RequestParams locationParams=CommonFunctions.buildLocationUpdateParams(getSharedPreferences(
-						AppPreferences.SharedPrefAuthentication.name,
-						MODE_PRIVATE).getString(
-						AppPreferences.SharedPrefAuthentication.user_email, ""), arg0.getLatitude(), arg0.getLongitude());
-		if (CommonFunctions.isConnected(this)) {
-			new SendLocationsAsyncTask(this).execute(locationParams);
+		// Log.d(TAG, "here in onLocationChanged");
+		RequestParams locationParams = CommonFunctions
+				.buildLocationUpdateParams(
+						getSharedPreferences(
+								AppPreferences.SharedPrefAuthentication.name,
+								MODE_PRIVATE)
+								.getString(
+										AppPreferences.SharedPrefAuthentication.user_email,
+										""), arg0.getLatitude(), arg0
+								.getLongitude());
+		if (CommonFunctions.isConnected(mContext)) {
+			new SendLocationsAsyncTask().execute(locationParams);
 		}
 
 	}

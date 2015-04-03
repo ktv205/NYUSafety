@@ -14,7 +14,7 @@ import com.example.clickforhelp.models.RequestParams;
 
 public class HttpManager {
 	//private final static String TAG = "HttpManager";
-	public String sendUserData(RequestParams params) {
+	public static String sendUserData(RequestParams params) {
 		URL url = null;
 		try {
 			if (params.getMethod() == "GET") {
