@@ -1,6 +1,7 @@
 package com.example.clickforhelp.controllers.ui;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -29,6 +30,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -47,6 +49,9 @@ public class HelperActivity extends Activity implements
 	private String SENDER_ID = AppPreferences.GOOGLEREGID;
 	private GoogleCloudMessaging mGcm;
 	private String mRegid;
+	private static final String UPDATE_HOME = "uh";
+	private static final String TAG = HelperActivity.class.getSimpleName();
+	private String userEmail;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -77,19 +82,14 @@ public class HelperActivity extends Activity implements
 		Location location = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
 		if (location != null) {
-			String[] locationValues = {
-					"public",
-					"index.php",
-					"updatelocation",
-					getSharedPreferences(
-							AppPreferences.SharedPrefAuthentication.name,
-							MODE_PRIVATE).getString(
-							AppPreferences.SharedPrefAuthentication.user_email,
-							""), String.valueOf(location.getLatitude()),
-					String.valueOf(location.getLongitude()) };
-			RequestParams locationParams = CommonFunctions.setParams(
-					AppPreferences.ServerVariables.SCHEME,
-					AppPreferences.ServerVariables.AUTHORITY, locationValues);
+			  RequestParams locationParams= CommonFunctions
+						.buildLocationUpdateParams(
+								userEmail,
+								location.getLatitude(),
+								location.getLongitude(),
+								new String[] {
+										AppPreferences.SharedPrefActivityRecognition.WALKING,
+										UPDATE_HOME });
 			if (CommonFunctions.isConnected(this)) {
 				new SendLocationsAsyncTask(HelperActivity.this)
 						.execute(locationParams);
@@ -168,11 +168,17 @@ public class HelperActivity extends Activity implements
 	}
 
 	@Override
-	public void getData(LocationDetailsModel locations) {
+	public void getData(ArrayList<LocationDetailsModel> locations) {
 		Toast.makeText(mContext,
 				"here you are supposed to get users locations",
 				Toast.LENGTH_SHORT).show();
+		for(LocationDetailsModel location:locations){
+			Log.d(TAG,location.getUser_email());
+		}
+
 		Intent intent = new Intent(mContext, MainActivity.class);
+		intent.putExtra(AppPreferences.IntentExtras.INITIAL_LOCATIONS,
+				locations);
 		startActivity(intent);
 		finish();
 
@@ -203,16 +209,8 @@ public class HelperActivity extends Activity implements
 	}
 
 	private void sendRegistrationIdToBackend(String regid) {
-		String[] values = {
-				"public",
-				"index.php",
-				"updategcm",
-				CommonFunctions
-						.getSharedPreferences(mContext,
-								AppPreferences.SharedPrefAuthentication.name)
-						.getString(
-								AppPreferences.SharedPrefAuthentication.user_email,
-								""), regid };
+		String[] values = { "public", "index.php", "updategcm", userEmail,
+				regid };
 		RequestParams params = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, values);
@@ -241,6 +239,7 @@ public class HelperActivity extends Activity implements
 			mHandler = new Handler();
 			mTimer = new Timer();
 			if (CommonFunctions.checkLoggedIn(mContext)) {
+				userEmail = CommonFunctions.getEmail(mContext);
 				if (CommonFunctions.checkIfGCMInfoIsSent(mContext)) {
 					// nothing to do if already info is sent
 				} else {

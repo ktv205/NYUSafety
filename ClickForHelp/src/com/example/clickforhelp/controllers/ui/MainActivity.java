@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.example.clickforhelp.controllers.services.ActivityRecognitionService;
 import com.example.clickforhelp.controllers.services.ReceiveLocationService;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
+import com.example.clickforhelp.controllers.utils.HttpManager;
 import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask;
 import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask.InternetConntection;
@@ -31,21 +32,27 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.clickforhelp.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,6 +65,19 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	// TAG for debugging
 	private static final String TAG = MainActivity.class.getSimpleName();
+
+	// Text for button
+	private static final String ASK_HELP = "Ask For Help";
+	private static final String ASKED_HELP = "Asked For Help(click here after receiving help)";
+	private static final String HELPING = "Helping a Friend(click here after helping)";
+
+	private static final int ASK_HELP_FLAG = 0;
+	private static final int ASKED_HELP_FLAG = 1;
+	private static final int HELPING_FLAG = 2;
+
+	private AlphaAnimation mAnimation;
+
+	private int mHelpFlag = 0;
 
 	// application Context;
 	private Context mContext;
@@ -75,7 +95,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	private boolean highAccuracy = false;
 
 	// user email to be sent to server that is retreived from sharedpreferences
-	private String user_email;
+	private String userEmail;
 
 	// locations
 	private LocationRequest mLocationRequest;
@@ -84,8 +104,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	private ArrayList<Marker> mMarkers;
 
 	// location broadcast receiver
-	private IntentFilter mIntentFilter;
-	private BroadcastReceiver mReceiver;
+	private IntentFilter mLocationIntentFilter;
+	private BroadcastReceiver mLocationReceiver;
 
 	// locationParams
 
@@ -98,6 +118,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	// Button for asking help
 
 	private Button mHelpButton;
+
+	// arraylist of locations
+	private ArrayList<LocationDetailsModel> mLocations;
+
+	private static final String UPDATE_HOME = "uh";
+
+	private MapFragment mMapFragment;
+
+	private IntentFilter mActivityIntentFilter;
+	private BroadcastReceiver mActivityReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -113,14 +143,31 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 			// getting user email to be sent to server in various calls to
 			// server
-			user_email = CommonFunctions.getEmail(mContext);
+			userEmail = CommonFunctions.getEmail(mContext);
 
 			// setting a broadcast listener for locations of other users
 			setFilterAndCategoryForLocationReceiver();
 			registerLocationReceiverBroadcastListener();
-			//
-			// // Markers
-			// mMarkers = new ArrayList<Marker>();
+
+			// setting a broadcast listener for activity of the current user
+			setFilterAndCategoryForActivityReceiver();
+			registerActiviyReceiverBroadcastListener();
+
+			// Markers
+			mMarkers = new ArrayList<Marker>();
+
+			// initialize button and textview
+			acessViews();
+
+			// animating button
+			buttonAnimation();
+
+			// get Intent from the notification
+			Intent intent = getIntent();
+			if (getIntent() != null) {
+				// Log.d(TAG, "intent not null");
+				retriveIntentExtras(intent);
+			}
 
 		} else {
 			setNoConnectionView();
@@ -134,8 +181,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		if (mGoogleApiClient != null) {
 			mGoogleApiClient.disconnect();
 		}
-		if (mReceiver != null) {
-			this.unregisterReceiver(mReceiver);
+		if (mLocationReceiver != null) {
+			this.unregisterReceiver(mLocationReceiver);
+		}
+		this.deactivate();
+		if (mGoogleMap != null) {
+			mGoogleMap = null;
+		}
+		if(mActivityReceiver!=null){
+		   this.unregisterReceiver(mActivityReceiver);
 		}
 	}
 
@@ -167,6 +221,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 
 	@Override
 	public void deactivate() {
+		Log.d(TAG, "deactivated");
 		mLocationChangedListener = null;
 	}
 
@@ -186,8 +241,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 		if (mLocationChangedListener != null && location != null) {
 			mLocationChangedListener.onLocationChanged(location);
 			mLocationParams = CommonFunctions
-					.buildLocationUpdateParams(user_email,
-							location.getLatitude(), location.getLongitude());
+					.buildLocationUpdateParams(
+							userEmail,
+							location.getLatitude(),
+							location.getLongitude(),
+							new String[] {
+									AppPreferences.SharedPrefActivityRecognition.WALKING,
+									UPDATE_HOME });
 			if (CommonFunctions.isConnected(mContext)) {
 				new InternetConnectionAsyncTask(this, true).execute();
 			}
@@ -200,7 +260,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	public void onConnected(Bundle arg0) {
 		settingUpActivityRecognition();
 		settingUpMapLocationSource();
-		fillMap();
+		moveCameraToCurrentLocation();
 	}
 
 	@Override
@@ -219,6 +279,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	@Override
 	public void onMapReady(GoogleMap arg0) {
 		mGoogleMap = arg0;
+
 		mGoogleMap.setOnMapLoadedCallback(this);
 
 	}
@@ -234,15 +295,17 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	}
 
 	@Override
-	public void getData(LocationDetailsModel locations) {
+	public void getData(ArrayList<LocationDetailsModel> locations) {
 		Toast.makeText(mContext, "do something here", Toast.LENGTH_SHORT)
 				.show();
+		mLocations = locations;
+		fillMap(mLocations);
 
 	}
 
 	@Override
 	public void isConnected(boolean connected) {
-		Log.d(TAG, String.valueOf(connected));
+		// Log.d(TAG, String.valueOf(connected));
 		if (connected) {
 			new SendLocationsAsyncTask(this).execute(mLocationParams);
 		}
@@ -273,10 +336,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 	}
 
 	public void initializeMap() {
-		MapFragment mapFragment = (MapFragment) getFragmentManager()
-				.findFragmentById(R.id.map);
-		mapFragment.getFragmentManager().findFragmentById(R.id.map);
-		mapFragment.getMapAsync(this);
+		mMapFragment = (MapFragment) getFragmentManager().findFragmentById(
+				R.id.map);
+		mMapFragment.getFragmentManager().findFragmentById(R.id.map);
+		mMapFragment.getMapAsync(this);
 	}
 
 	public void buildGoogleApiClient() {
@@ -340,27 +403,61 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 				mGoogleApiClient, mLocationRequest, this);
 	}
 
-	public void fillMap() {
-		mLastLocation = LocationServices.FusedLocationApi
-				.getLastLocation(mGoogleApiClient);
+	public void fillMap(ArrayList<LocationDetailsModel> locations) {
+		if (!mMarkers.isEmpty()) {
+			for (Marker marker : mMarkers) {
+				marker.remove();
+			}
+		}
+		if (locations != null) {
+			// Log.d(TAG, "locations not null");
+			if (locations.isEmpty()) {
+				// Log.d(TAG, "locations empty");
+				mPeopleTextView.setText("No one around you");
+				// empty
+			} else {
+				int size = locations.size();
+				if (size == 1) {
+					mPeopleTextView.setText(locations.size()
+							+ " person near you");
+				} else {
+					mPeopleTextView.setText(locations.size()
+							+ " persons near you");
+				}
 
-		if (mLastLocation != null) {
-			// Log.d(TAG, "mLastLocation is not null");
-			mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
-					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-					16));
+				if (mGoogleMap != null) {
+					// Log.d(TAG, "mGoogleMap is not empty");
+					for (LocationDetailsModel location : locations) {
+						// Log.d(TAG, "inside locations of fill map");
+						// Log.d(TAG,
+						// location.getLatitude() + " "
+						// + location.getLongitude());
+
+						Marker marker = mGoogleMap
+								.addMarker(new MarkerOptions().position(
+										new LatLng(location.getLatitude(),
+												location.getLongitude()))
+										.title("friend"));
+						mMarkers.add(marker);
+					}
+				} else {
+					Log.d(TAG, "mGoogleMap is empty");
+				}
+			}
+
 		}
 
 	}
 
 	public void setFilterAndCategoryForLocationReceiver() {
 		// Log.d(TAG, "in setFilterAnd ");
-		mIntentFilter = new IntentFilter("com.example.clickforhelp.action_send");
-		mIntentFilter.addCategory("com.example.clickforhelp");
+		mLocationIntentFilter = new IntentFilter(
+				"com.example.clickforhelp.action_send");
+		mLocationIntentFilter.addCategory("com.example.clickforhelp");
 	}
 
 	public void registerLocationReceiverBroadcastListener() {
-		mReceiver = new BroadcastReceiver() {
+		mLocationReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// Log.d(TAG, "in onReceive of broadcast receiver");
@@ -380,7 +477,159 @@ public class MainActivity extends Activity implements OnMapReadyCallback,
 				}).start();
 			}
 		};
-		this.registerReceiver(mReceiver, mIntentFilter);
+		this.registerReceiver(mLocationReceiver, mLocationIntentFilter);
+	}
+
+	public void acessViews() {
+		mPeopleTextView = (TextView) findViewById(R.id.text_people);
+		mHelpButton = (Button) findViewById(R.id.button_help);
+		mHelpButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (mHelpFlag == ASK_HELP_FLAG) {
+					if (mAnimation != null) {
+						mHelpButton.startAnimation(mAnimation);
+					}
+					highAccuracy = true;
+					resetGoogleApiClient();
+					RequestParams params = CommonFunctions.helpParams(
+							"askhelp", userEmail);
+					changeTextOfButton(ASKED_HELP);
+					mHelpFlag = ASKED_HELP_FLAG;
+					new AskHelpAsyncTask().execute(params);
+
+				} else if (mHelpFlag == ASKED_HELP_FLAG) {
+					RequestParams params = CommonFunctions.helpParams(
+							"helpreceived", userEmail);
+					changeTextOfButton(ASK_HELP);
+
+					mHelpFlag = ASK_HELP_FLAG;
+					highAccuracy = false;
+					resetGoogleApiClient();
+					mHelpButton.clearAnimation();
+					new AskHelpAsyncTask().execute(params);
+
+				} else if (mHelpFlag == HELPING_FLAG) {
+					changeTextOfButton(ASK_HELP);
+
+					mHelpFlag = ASK_HELP_FLAG;
+					highAccuracy = false;
+					resetGoogleApiClient();
+					mHelpButton.clearAnimation();
+				}
+
+			}
+		});
+	}
+
+	public void buttonAnimation() {
+		mAnimation = new AlphaAnimation(1, 0); // Change alpha from fully
+												// visible
+												// to invisible
+		mAnimation.setDuration(500); // duration - half a second
+		mAnimation.setInterpolator(new LinearInterpolator()); // do not alter
+																// animation
+																// rate
+		mAnimation.setRepeatCount(Animation.INFINITE); // Repeat animation
+														// infinitely
+		mAnimation.setRepeatMode(Animation.REVERSE); // Reverse animation at the
+														// end so the button
+														// will
+														// fade back in
+
+	}
+
+	public void changeTextOfButton(String text) {
+		mHelpButton.setText(text);
+	}
+
+	public void retriveIntentExtras(Intent intent) {
+		if (intent.hasExtra(AppPreferences.IntentExtras.INITIAL_LOCATIONS)) {
+			Log.d(TAG, "has extras as intial locations");
+			mLocations = intent
+					.getParcelableArrayListExtra(AppPreferences.IntentExtras.INITIAL_LOCATIONS);
+			for (LocationDetailsModel location : mLocations) {
+				Log.d(TAG, location.getUser_email());
+			}
+			fillMap(mLocations);
+
+		} else if (intent.hasExtra(AppPreferences.IntentExtras.COORDINATES)) {
+			highAccuracy = true;
+			mHelpButton.setText(HELPING);
+			mHelpFlag = HELPING_FLAG;
+			if (mAnimation != null) {
+				mHelpButton.startAnimation(mAnimation);
+				resetGoogleApiClient();
+			}
+		}
+
+	}
+
+	public void moveCameraToCurrentLocation() {
+		mLastLocation = LocationServices.FusedLocationApi
+				.getLastLocation(mGoogleApiClient);
+
+		if (mLastLocation != null) {
+			// Log.d(TAG, "mLastLocation is not null");
+			mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(
+					mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+					16));
+		}
+	}
+
+	public void resetGoogleApiClient() {
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.disconnect();
+			if (mGoogleMap != null) {
+				mGoogleMap = null;
+				mMapFragment = null;
+				this.deactivate();
+				initializeMap();
+			}
+		} else {
+
+		}
+	}
+
+	public void setFilterAndCategoryForActivityReceiver() {
+		mActivityIntentFilter = new IntentFilter(
+				"com.example.clickforhelp.action_activity");
+		mActivityIntentFilter.addCategory("com.example.clickforhelp");
+	}
+
+	public void registerActiviyReceiverBroadcastListener() {
+
+		mActivityReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+
+			}
+		};
+		this.registerReceiver(mActivityReceiver, mActivityIntentFilter);
+
+	}
+
+	public class AskHelpAsyncTask extends
+			AsyncTask<RequestParams, Void, String> {
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setTitle(AppPreferences.Others.LOADING);
+			dialog.setMessage("Notifying your friends");
+		}
+
+		protected String doInBackground(RequestParams... params) {
+			return HttpManager.sendUserData(params[0]);
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			dialog.dismiss();
+		}
 	}
 
 }

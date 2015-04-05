@@ -216,9 +216,9 @@ public class CommonFunctions {
 	}
 
 	public static RequestParams buildLocationUpdateParams(String user_id,
-			double latitude, double longitude) {
+			double latitude, double longitude, String[] strings) {
 		String[] locationValues = { "public", "index.php", "updatelocation",
-				user_id, String.valueOf(latitude), String.valueOf(longitude) };
+				user_id, String.valueOf(latitude), String.valueOf(longitude),strings[0],strings[1]};
 		RequestParams locationParams = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, locationValues);

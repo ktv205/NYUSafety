@@ -27,6 +27,7 @@ public class AppPreferences {
 		public final static String HIGH_ACCURACY = "high_accuracy";
 		public final static String BALANCED_POWER = "balanced_power";
 		public final static String NEW_PASSWORD = "new password";
+		public final static String INITIAL_LOCATIONS="initial_locations";
 	}
 
 	public static abstract class SharedPrefAuthentication {
@@ -54,9 +55,9 @@ public class AppPreferences {
 	public static abstract class SharedPrefActivityRecognition {
 		public final static String name = "ActivityRecognition";
 		public final static String enabled = "enabled";
-		public final static String WALKING = "w";
-		public final static String STILL = "s";
-		public final static String VEHICLE = "o";
+		public final static String WALKING = "walking";
+		public final static String STILL = "still";
+		public final static String VEHICLE = "onvehicle";
 		public final static String activityType= "activityType";
 		public final static String type = "type";
 	}

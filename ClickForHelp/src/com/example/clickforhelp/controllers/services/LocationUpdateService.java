@@ -28,6 +28,7 @@ public class LocationUpdateService extends Service implements
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
 	public boolean high_accuracy = false;
 	private Context mContext;
+	private static final String UPDATE="u";
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// Log.d(TAG, "here in onStartCommand");
@@ -102,13 +103,8 @@ public class LocationUpdateService extends Service implements
 		// Log.d(TAG, "here in onLocationChanged");
 		RequestParams locationParams = CommonFunctions
 				.buildLocationUpdateParams(
-						getSharedPreferences(
-								AppPreferences.SharedPrefAuthentication.name,
-								MODE_PRIVATE)
-								.getString(
-										AppPreferences.SharedPrefAuthentication.user_email,
-										""), arg0.getLatitude(), arg0
-								.getLongitude());
+						CommonFunctions.getEmail(mContext), arg0.getLatitude(), arg0
+								.getLongitude(),new String[]{AppPreferences.SharedPrefActivityRecognition.WALKING,UPDATE});
 		if (CommonFunctions.isConnected(mContext)) {
 			new SendLocationsAsyncTask().execute(locationParams);
 		}
