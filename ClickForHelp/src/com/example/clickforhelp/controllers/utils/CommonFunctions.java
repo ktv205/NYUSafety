@@ -130,33 +130,51 @@ public class CommonFunctions {
 		}
 	}
 
-	public static void settingUserPreferenceLocationUpdates(Context context) {
+	public static void settingUserPreferenceLocationUpdates(Context context,
+			String activity) {
 		int value = userLocationUpdatePreference(context);
 		Intent sendLocationIntentService = new Intent(context,
 				LocationUpdateService.class);
+		sendLocationIntentService
+				.putExtra(
+						AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE,
+						activity);
+		boolean serviceRunning = CommonFunctions.isMyServiceRunning(
+				LocationUpdateService.class, context);
 		if (value == AppPreferences.SharedPrefLocationSettings.NEVER) {
-			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-					context)) {
+			if (serviceRunning) {
 				context.stopService(sendLocationIntentService);
 			} else {
+
 			}
 
 		} else if (value == AppPreferences.SharedPrefLocationSettings.PLUGGEDIN) {
 			if (checkPluggedIn(context)) {
+				if (serviceRunning) {
+					if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+						context.stopService(sendLocationIntentService);
+						context.startService(sendLocationIntentService);
+					} else {
+
+					}
+				}
 			} else {
 				if (CommonFunctions.isMyServiceRunning(
 						LocationUpdateService.class, context)) {
 					context.stopService(sendLocationIntentService);
 				} else {
+
 				}
 
 			}
 
 		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
-			if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-					context)) {
+			if (serviceRunning) {
 				if (checkChargingLevel(context)) {
-					// No need to stop the service
+					if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+						context.stopService(sendLocationIntentService);
+						context.startService(sendLocationIntentService);
+					}
 				} else {
 					context.stopService(sendLocationIntentService);
 				}
@@ -170,7 +188,10 @@ public class CommonFunctions {
 			}
 		} else {
 			if (isMyServiceRunning(LocationUpdateService.class, context)) {
-				// already service started
+				if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+					context.stopService(sendLocationIntentService);
+					context.startService(sendLocationIntentService);
+				}
 			} else {
 				context.startService(sendLocationIntentService);
 			}
@@ -218,7 +239,8 @@ public class CommonFunctions {
 	public static RequestParams buildLocationUpdateParams(String user_id,
 			double latitude, double longitude, String[] strings) {
 		String[] locationValues = { "public", "index.php", "updatelocation",
-				user_id, String.valueOf(latitude), String.valueOf(longitude),strings[0],strings[1]};
+				user_id, String.valueOf(latitude), String.valueOf(longitude),
+				strings[0], strings[1] };
 		RequestParams locationParams = CommonFunctions.setParams(
 				AppPreferences.ServerVariables.SCHEME,
 				AppPreferences.ServerVariables.AUTHORITY, locationValues);

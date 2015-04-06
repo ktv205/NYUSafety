@@ -17,9 +17,11 @@ public class InternetConnectionAsyncTask extends AsyncTask<Void, Void, Boolean> 
 			.getSimpleName();
 	private Context mContext;
 	private InternetConntection mInternetConntection;
+	private String mActivityTye;
 
-	public InternetConnectionAsyncTask(Context context) {
+	public InternetConnectionAsyncTask(Context context,String activityType) {
 		mContext = context;
+		mActivityTye=activityType;
 
 	}
 	
@@ -72,7 +74,7 @@ public class InternetConnectionAsyncTask extends AsyncTask<Void, Void, Boolean> 
 		if (mInternetConntection == null) {
 			if (result == true) {
 				AppPreferences.tryConnectionCounter = 0;
-				// CommonFunctions.settingUserPreferenceLocationUpdates(mContext);
+				CommonFunctions.settingUserPreferenceLocationUpdates(mContext,mActivityTye);
 			} else {
 				if (AppPreferences.tryConnectionCounter == 0) {
 					new Thread(new Runnable() {
@@ -83,7 +85,7 @@ public class InternetConnectionAsyncTask extends AsyncTask<Void, Void, Boolean> 
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							new InternetConnectionAsyncTask(mContext);
+							new InternetConnectionAsyncTask(mContext,mActivityTye);
 						}
 					}).start();
 					AppPreferences.tryConnectionCounter++;

@@ -2,6 +2,7 @@ package com.example.clickforhelp.controllers.receivers;
 
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
+import com.example.clickforhelp.models.AppPreferences;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,7 +22,9 @@ public class BatteryLevelReceiver extends BroadcastReceiver {
 				// as the activity is in foreground don't do anything
 			} else {
 				if (CommonFunctions.isConnected(context)) {
-					new InternetConnectionAsyncTask(context);
+					new InternetConnectionAsyncTask(
+							context,
+							AppPreferences.SharedPrefActivityRecognition.WALKING);
 				}
 			}
 		} else {

@@ -3,6 +3,7 @@ package com.example.clickforhelp.controllers.receivers;
 import com.example.clickforhelp.controllers.services.LocationUpdateService;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
+import com.example.clickforhelp.models.AppPreferences;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,7 +26,7 @@ public class NetworkConnectivityChangeReceiver extends BroadcastReceiver {
 				Log.d(TAG, "app is in background");
 				if (CommonFunctions.isConnected(context)) {
 					// Log.d(TAG, "connected");
-					new InternetConnectionAsyncTask(context).execute();
+					new InternetConnectionAsyncTask(context,AppPreferences.SharedPrefActivityRecognition.WALKING).execute();
 				} else {
 					// Log.d(TAG, "not connected");
 					if (CommonFunctions.isMyServiceRunning(

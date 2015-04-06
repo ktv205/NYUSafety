@@ -28,6 +28,8 @@ public class AppPreferences {
 		public final static String BALANCED_POWER = "balanced_power";
 		public final static String NEW_PASSWORD = "new password";
 		public final static String INITIAL_LOCATIONS="initial_locations";
+		public final static String ActivityRecognitionService_EXTRA_MESSAGE="ActivityRecognitionService.EXTRA_MESSAGE";
+		public final static String ReceiveLocationService_EXTRA_MESSAGE="ReceiveLocationService_EXTRA_MESSAGE";
 	}
 
 	public static abstract class SharedPrefAuthentication {

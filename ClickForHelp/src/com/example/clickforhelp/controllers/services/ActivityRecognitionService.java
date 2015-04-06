@@ -5,129 +5,103 @@ import com.example.clickforhelp.models.AppPreferences;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
-import android.app.Service;
+import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.IBinder;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 
-public class ActivityRecognitionService extends Service {
+public class ActivityRecognitionService extends IntentService {
+	private Context mContext;
 
-	@Override
-	public IBinder onBind(Intent intent) {
-		// TODO Auto-generated method stub
-		return null;
+	public ActivityRecognitionService() {
+		super(ActivityRecognitionService.class.getSimpleName());
+		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		// Toast.makeText(this, "activity recogniston service",
-		// Toast.LENGTH_SHORT)
-		// .show();
-		ActivityRecognitionResult result = ActivityRecognitionResult
-				.extractResult(intent);
-		SharedPreferences locationUpdatePreferences = CommonFunctions
-				.getSharedPreferences(
-						getApplicationContext(),
-						AppPreferences.SharedPrefActivityRecognition.activityType);
-		SharedPreferences.Editor edit = locationUpdatePreferences.edit();
-		if (result != null) {
-			DetectedActivity detectedActivity = result
-					.getMostProbableActivity();
-			// Toast.makeText(this, "type->" + detectedActivity.getType(),
-			// Toast.LENGTH_SHORT).show();
-			if (detectedActivity.getType() == DetectedActivity.IN_VEHICLE) {
-				// doThis();
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.VEHICLE);
+	protected void onHandleIntent(Intent intent) {
+		if (mContext == null) {
+			mContext = getApplicationContext();
+		}
+		String activity = null;
+		if (intent != null) {
+			ActivityRecognitionResult result = ActivityRecognitionResult
+					.extractResult(intent);
+			if (result != null) {
+				DetectedActivity detectedActivity = result
+						.getMostProbableActivity();
+				if (detectedActivity.getType() == DetectedActivity.IN_VEHICLE) {
+					activity = AppPreferences.SharedPrefActivityRecognition.VEHICLE;
+				} else if (detectedActivity.getType() == DetectedActivity.ON_FOOT) {
+					activity = AppPreferences.SharedPrefActivityRecognition.WALKING;
+				} else if (detectedActivity.getType() == DetectedActivity.RUNNING) {
+					activity = AppPreferences.SharedPrefActivityRecognition.WALKING;
+				} else if (detectedActivity.getType() == DetectedActivity.STILL) {
+					activity = AppPreferences.SharedPrefActivityRecognition.STILL;
+				} else if (detectedActivity.getType() == DetectedActivity.ON_BICYCLE) {
+					activity = AppPreferences.SharedPrefActivityRecognition.WALKING;
+				} else if (detectedActivity.getType() == DetectedActivity.UNKNOWN) {
 
-			} else if (detectedActivity.getType() == DetectedActivity.ON_FOOT) {
-				// doThis();
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.WALKING);
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.ON_FOOT"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
-			} else if (detectedActivity.getType() == DetectedActivity.RUNNING) {
-				// doThis();
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.WALKING);
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.RUNNING"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
-			} else if (detectedActivity.getType() == DetectedActivity.STILL) {
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.STILL);
-				if (CommonFunctions.isMyServiceRunning(
-						LocationUpdateService.class, this)) {
-					stopService(new Intent(this, LocationUpdateService.class));
+				} else if (detectedActivity.getType() == DetectedActivity.WALKING) {
+					activity = AppPreferences.SharedPrefActivityRecognition.WALKING;
+				} else if (detectedActivity.getType() == DetectedActivity.TILTING) {
+
 				}
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.STILL"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
-			} else if (detectedActivity.getType() == DetectedActivity.ON_BICYCLE) {
-				// doThis();
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.VEHICLE);
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.ON_BICYCLE"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
+				boolean serviceRunning = CommonFunctions.isMyServiceRunning(
+						LocationUpdateService.class, mContext);
+				boolean activityRunning = CommonFunctions
+						.isActivityRunning(mContext);
+				if (serviceRunning && !activityRunning) {
+					if (activity != null) {
+						if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+							CommonFunctions
+									.settingUserPreferenceLocationUpdates(
+											mContext, activity);
+						}
+					}
+				} else if (!serviceRunning && activityRunning) {
 
-			} else if (detectedActivity.getType() == DetectedActivity.UNKNOWN) {
-				// if (CommonFunctions.isMyServiceRunning(
-				// LocationUpdateService.class, this)) {
-				//
-				// } else {
-				// CommonFunctions.settingUserPreferenceLocationUpdates(this);
-				// }
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.UNKNOWN"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
-			} else if (detectedActivity.getType() == DetectedActivity.WALKING) {
-				edit.putString(
-						AppPreferences.SharedPrefActivityRecognition.type,
-						AppPreferences.SharedPrefActivityRecognition.WALKING);
-				// doThis();
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.WALKING"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
-			} else if (detectedActivity.getType() == DetectedActivity.TILTING) {
-				// Toast.makeText(
-				// this,
-				// "detectedActivity.getType()==DetectedActivity.tilting"
-				// + detectedActivity.getType(),
-				// Toast.LENGTH_SHORT).show();
+					if (intent
+							.hasExtra(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE)) {
+						if (CommonFunctions
+								.isActivityRunning(getApplicationContext())) {
+							Messenger message = (Messenger) intent
+									.getExtras()
+									.get(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE);
+							try {
+								Message msg = Message.obtain();
+								if (activity != null) {
+									Bundle bundle = new Bundle();
+									bundle.putString(
+											AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE,
+											activity);
+									msg.setData(bundle);
+									message.send(msg);
+								}
+
+							} catch (RemoteException e) {
+								e.printStackTrace();
+							}
+						}
+
+					}
+
+				} else if (!serviceRunning && !activityRunning) {
+					if (activity != null) {
+						if (activity == AppPreferences.SharedPrefActivityRecognition.WALKING
+								|| activity == AppPreferences.SharedPrefActivityRecognition.VEHICLE) {
+							CommonFunctions
+									.settingUserPreferenceLocationUpdates(
+											mContext, activity);
+						}
+					}
+				}
+
 			}
-			edit.commit();
 
 		}
-		return super.onStartCommand(intent, flags, startId);
 	}
-
-	// public void doThis() {
-	// if (CommonFunctions.isMyServiceRunning(LocationUpdateService.class,
-	// this)) {
-	//
-	// } else {
-	// CommonFunctions.settingUserPreferenceLocationUpdates(this);
-	// }
-	//
-	// }
-
 }

@@ -28,18 +28,26 @@ public class LocationUpdateService extends Service implements
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
 	public boolean high_accuracy = false;
 	private Context mContext;
-	private static final String UPDATE="u";
+	private static final String UPDATE = "u";
+	private String activity;
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		// Log.d(TAG, "here in onStartCommand");
-		if (intent != null) {
-			if (intent.hasExtra(AppPreferences.IntentExtras.HIGH_ACCURACY)) {
-				high_accuracy = true;
-			}
+
+		if (intent != null
+				&& intent
+						.hasExtra(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE)) {
+			activity = intent
+					.getExtras()
+					.getString(
+							AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE);
+			mContext = getApplicationContext();
+			buildGoogleApiClient();
+
+		} else {
+			stopSelf();
 		}
-		mContext = getApplicationContext();
-		buildGoogleApiClient();
-		return START_STICKY;
+
+		return START_REDELIVER_INTENT;
 	}
 
 	@Override
@@ -102,11 +110,14 @@ public class LocationUpdateService extends Service implements
 	public void onLocationChanged(Location arg0) {
 		// Log.d(TAG, "here in onLocationChanged");
 		RequestParams locationParams = CommonFunctions
-				.buildLocationUpdateParams(
-						CommonFunctions.getEmail(mContext), arg0.getLatitude(), arg0
-								.getLongitude(),new String[]{AppPreferences.SharedPrefActivityRecognition.WALKING,UPDATE});
+				.buildLocationUpdateParams(CommonFunctions.getEmail(mContext),
+						arg0.getLatitude(), arg0.getLongitude(), new String[] {
+								activity, UPDATE });
 		if (CommonFunctions.isConnected(mContext)) {
 			new SendLocationsAsyncTask().execute(locationParams);
+			if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+				stopSelf();
+			}
 		}
 
 	}
