@@ -15,6 +15,7 @@ public class SendLocationsAsyncTask extends
 	private GetOtherUsersLocations mUserLocations;
 	
 	private static final String TAG=SendLocationsAsyncTask.class.getSimpleName();
+	
 
 	public interface GetOtherUsersLocations {
 		public void getData(ArrayList<LocationDetailsModel> arrayList);

@@ -19,5 +19,6 @@
     <color name="nyupurple" type="color">#57068c</color>
     <color name="black" type="color">#000000</color>
     <color name="dark_purle" type="color">#2E0854</color>
+    <color name="light_black">#B2B2B2</color>
 
 </resources>

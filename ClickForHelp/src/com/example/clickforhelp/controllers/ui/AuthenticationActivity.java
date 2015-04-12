@@ -1,6 +1,7 @@
 package com.example.clickforhelp.controllers.ui;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.controllers.services.LocationUpdateService;
 import com.example.clickforhelp.controllers.ui.fragments.EmailVerificationFragment;
 import com.example.clickforhelp.controllers.ui.fragments.LoginFragment;
 import com.example.clickforhelp.controllers.ui.fragments.SignupFragment;
@@ -36,6 +37,9 @@ public class AuthenticationActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_authentication);
+		if(CommonFunctions.isMyServiceRunning(LocationUpdateService.class, this)){
+			stopService(new Intent(this, LocationUpdateService.class));
+		}
 		if (CommonFunctions.isConnected(this)) {
 			mFragmentManager = getFragmentManager();
 			mFragmentTransaction = mFragmentManager.beginTransaction();

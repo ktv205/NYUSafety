@@ -7,11 +7,13 @@ public class LocationDetailsModel implements Parcelable {
 	private double latitude;
 	private double longitude;
 	private String user_email;
+	private int color;
 
 	public LocationDetailsModel(Parcel source) {
 		latitude = source.readDouble();
 		longitude = source.readDouble();
 		user_email = source.readString();
+		color=source.readInt();
 	}
 
 	public LocationDetailsModel() {
@@ -41,6 +43,15 @@ public class LocationDetailsModel implements Parcelable {
 	public void setUser_email(String user_email) {
 		this.user_email = user_email;
 	}
+	
+
+	public int getColor() {
+		return color;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
 
 	@Override
 	public int describeContents() {
@@ -68,6 +79,7 @@ public class LocationDetailsModel implements Parcelable {
 		dest.writeDouble(latitude);
 		dest.writeDouble(longitude);
 		dest.writeString(user_email);
+		dest.writeInt(color);
 
 	}
 

@@ -3,15 +3,13 @@ package com.example.clickforhelp.controllers.ui.fragments;
 import java.util.HashMap;
 
 import com.example.clickforhelp.R;
-import com.example.clickforhelp.controllers.ui.MainActivity;
+import com.example.clickforhelp.controllers.ui.HelperActivity;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
-import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 
 import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,7 +22,8 @@ import android.widget.Toast;
 
 public class NewPasswordFragment extends Fragment {
 	View mView;
-	//private final static String TAG = NewPasswordFragment.class.getSimpleName();
+	// private final static String TAG =
+	// NewPasswordFragment.class.getSimpleName();
 	private final static int PASSWORD_EMPTY = 2;
 	private final static int mRetype_EMPTY = 3;
 	private final static int DONT_MATCH = 4;
@@ -36,6 +35,11 @@ public class NewPasswordFragment extends Fragment {
 	private final static int OLD_PASSWORD_EMPTY = 7;
 	EditText mOldPasswordEdittext;
 	private final static String MESSAGE = "Please wait while we set your new password";
+	private final static String RESET_PASSWORD = "resetpassword";
+	private boolean mIsChange = false;
+	private final static String UPDATE_PASSWORD = "updatepassword";
+	private static final int RESET = 1;
+	private static final int UPDATE = 2;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -63,14 +67,12 @@ public class NewPasswordFragment extends Fragment {
 				} else if (flag == OLD_PASSWORD_WRONG) {
 					message = "current password wrong";
 				} else {
-					if (getActivity().getIntent().hasExtra(
-							AppPreferences.IntentExtras.CHANGE)) {
-						RequestParams params = setPasswordParams(2);
+					if (mIsChange) {
+						RequestParams params = setPasswordParams(RESET);
 						new CommonResultAsyncTask(getActivity(), MESSAGE, 0)
 								.execute(params);
 					} else {
-
-						RequestParams params = setPasswordParams(1);
+						RequestParams params = setPasswordParams(UPDATE);
 						new CommonResultAsyncTask(getActivity(), MESSAGE, 0)
 								.execute(params);
 					}
@@ -87,46 +89,38 @@ public class NewPasswordFragment extends Fragment {
 
 	public RequestParams setPasswordParams(int values) {
 		String[] finalPath;
-		if (values == 1) {
-			String[] paths = {
-					"public",
-					"index.php",
-					"updatepassword",
-					getActivity().getSharedPreferences(
-							AppPreferences.SharedPrefAuthentication.name,
-							Context.MODE_PRIVATE).getString(
-							AppPreferences.SharedPrefAuthentication.user_email,
-							""), mPassword };
+		if (values == UPDATE) {
+			String[] paths = { UPDATE_PASSWORD,
+					CommonFunctions.getEmail(getActivity()), mPassword };
 			finalPath = paths;
 		} else {
-			String[] paths = { "public", "index.php", "resetpassword",
+			String[] paths = { RESET_PASSWORD,
 					CommonFunctions.getEmail(getActivity()), mOldPassword,
 					mPassword };
 			finalPath = paths;
 		}
-		RequestParams params = CommonFunctions.setParams(
-				ServerVariables.SCHEME, ServerVariables.AUTHORITY, finalPath);
+		RequestParams params = CommonFunctions.setParams(finalPath);
 		return params;
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-
-		if (getActivity().getIntent() != null) {
-			if (getActivity().getIntent().hasExtra(
-					AppPreferences.IntentExtras.CHANGE)) {
-				getActivity().getActionBar().setTitle(
-						R.string.title_change_password);
-
-			} else {
-				getActivity().getActionBar().setTitle(
-						R.string.title_new_password);
-				mOldPasswordEdittext.setVisibility(View.GONE);
-			}
+		checkForIntent();
+		if (mIsChange) {
+			getActivity().getActionBar().setTitle(
+					R.string.title_change_password);
 		} else {
 			getActivity().getActionBar().setTitle(R.string.title_new_password);
 			mOldPasswordEdittext.setVisibility(View.GONE);
+		}
+	}
+
+	public void checkForIntent() {
+		if (getActivity().getIntent() != null
+				&& getActivity().getIntent().hasExtra(
+						AppPreferences.IntentExtras.CHANGE)) {
+			mIsChange = true;
 		}
 	}
 
@@ -168,19 +162,13 @@ public class NewPasswordFragment extends Fragment {
 
 	public void responseFromServer(int code) {
 		if (code == SET) {
-			if (getActivity().getIntent() != null) {
-				if (getActivity().getIntent().hasExtra(
-						AppPreferences.IntentExtras.CHANGE)) {
-					setFlagPreference();
-					getActivity().setResult(0);
-					getActivity().finish();
-				} else {
-					startActivity(new Intent(getActivity(), MainActivity.class));
-					setFlagPreference();
-					getActivity().finishAffinity();
-				}
+			if (mIsChange) {
+				setFlagPreference();
+				getActivity().setResult(0);
+				getActivity().finish();
 			} else {
-				startActivity(new Intent(getActivity(), MainActivity.class));
+				setFlagPreference();
+				startActivity(new Intent(getActivity(), HelperActivity.class));
 				getActivity().finishAffinity();
 			}
 		} else if (code == PASSWORD_WRONG) {
@@ -201,64 +189,5 @@ public class NewPasswordFragment extends Fragment {
 		CommonFunctions.saveInPreferences(getActivity(),
 				AppPreferences.SharedPrefAuthentication.name, values);
 	}
-
-	// public class SendPasswordAsyncTask extends
-	// AsyncTask<RequestParams, Void, String> {
-	// ProgressDialog dialog;
-	//
-	// @Override
-	// protected void onPreExecute() {
-	// super.onPreExecute();
-	// dialog = new ProgressDialog(getActivity());
-	// dialog.setTitle(AppPreferences.Others.LOADING);
-	// dialog.setMessage("Please wait while we set your new password");
-	// }
-	//
-	// @Override
-	// protected String doInBackground(RequestParams... params) {
-	// return HttpManager.sendUserData(params[0]);
-	// }
-	//
-	// @Override
-	// protected void onPostExecute(String result) {
-	// super.onPostExecute(result);
-	// Log.d(TAG, result);
-	// if (result != null) {
-	// int code = MyJSONParser.AuthenticationParser(result);
-	// if (code == SET) {
-	// if (getActivity().getIntent() != null) {
-	// if (getActivity().getIntent().hasExtra(
-	// AppPreferences.IntentExtras.CHANGE)) {
-	// setFlagPreference();
-	// getActivity().setResult(0);
-	// getActivity().finish();
-	// } else {
-	// startActivity(new Intent(getActivity(),
-	// MainActivity.class));
-	// setFlagPreference();
-	// getActivity().finishAffinity();
-	// }
-	// } else {
-	// startActivity(new Intent(getActivity(),
-	// MainActivity.class));
-	// getActivity().finishAffinity();
-	// }
-	// } else if (code == PASSWORD_WRONG) {
-	// Toast.makeText(getActivity(),
-	// "password you entered is wrong", Toast.LENGTH_SHORT)
-	// .show();
-	// } else {
-	// Toast.makeText(getActivity(),
-	// "something went wrong please try again",
-	// Toast.LENGTH_SHORT).show();
-	// }
-	// } else {
-	// Toast.makeText(getActivity(),
-	// "something went wrong please try again",
-	// Toast.LENGTH_SHORT).show();
-	// }
-	// }
-	//
-	// }
 
 }

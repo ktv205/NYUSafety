@@ -9,7 +9,6 @@ import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.CommonResultAsyncTask;
 import com.example.clickforhelp.models.AppPreferences;
 //import com.example.clickforhelp.controllers.SignupFragment.SignupInterface;
-import com.example.clickforhelp.models.AppPreferences.ServerVariables;
 import com.example.clickforhelp.models.RequestParams;
 import com.example.clickforhelp.models.UserModel;
 
@@ -35,6 +34,7 @@ public class LoginFragment extends Fragment {
 	private final static int RESULT_OK = 5;
 	private UserModel mUser;
 	private final static int LOGIN_SUCCESS = 1;
+	private final static String LOGIN="login";
 
 	private LoginInterface mLoginInterface;
 
@@ -107,11 +107,9 @@ public class LoginFragment extends Fragment {
 						message = "password cant be empty";
 					} else {
 						createUserModel();
-						String[] paths = { "public", "index.php", "login",
+						String[] paths = {LOGIN,
 								mEmail, mPassword };
-						RequestParams params = CommonFunctions.setParams(
-								ServerVariables.SCHEME,
-								ServerVariables.AUTHORITY, paths);
+						RequestParams params = CommonFunctions.setParams(paths);
 						new CommonResultAsyncTask(getActivity(),
 								"Please wait while we log you in", 0)
 								.execute(params);
@@ -174,60 +172,4 @@ public class LoginFragment extends Fragment {
 		}
 
 	}
-
-	// public class SendLoginDetailsAsyncTask extends
-	// AsyncTask<RequestParams, Void, String> {
-	// ProgressDialog dialog;
-	//
-	// @Override
-	// protected void onPreExecute() {
-	// super.onPreExecute();
-	// dialog = new ProgressDialog(getActivity());
-	// dialog.setTitle("Loading...");
-	// dialog.setMessage("Please wait while we log you in");
-	// dialog.show();
-	//
-	// }
-	//
-	// @Override
-	// protected String doInBackground(RequestParams... params) {
-	// return HttpManager.sendUserData(params[0]);
-	// }
-	//
-	// @Override
-	// protected void onPostExecute(String result) {
-	// super.onPostExecute(result);
-	// dialog.dismiss();
-	// Log.d(TAG, result);
-	// if (result != null) {
-	// int code = MyJSONParser.AuthenticationParser(result);
-	// if (code == LOGIN_SUCCESS) {
-	// HashMap<String, String> values = new HashMap<String, String>();
-	// values.put(
-	// AppPreferences.SharedPrefAuthentication.user_email,
-	// mUser.getEmail());
-	// values.put(
-	// AppPreferences.SharedPrefAuthentication.password,
-	// mPassword);
-	// values.put(AppPreferences.SharedPrefAuthentication.flag,
-	// AppPreferences.SharedPrefAuthentication.FLAG_ACTIVE);
-	// CommonFunctions.saveInPreferences(getActivity(),
-	// AppPreferences.SharedPrefAuthentication.name,
-	// values);
-	// Intent intent = new Intent(getActivity(),
-	// HelperActivity.class);
-	// getActivity().startActivity(intent);
-	// getActivity().finish();
-	// } else {
-	// Toast.makeText(getActivity(), "email or password mismatch",
-	// Toast.LENGTH_SHORT).show();
-	// }
-	// } else {
-	// Toast.makeText(getActivity(),
-	// "some thing went wrong please try again",
-	// Toast.LENGTH_SHORT).show();
-	// }
-	// }
-	// }
-
 }

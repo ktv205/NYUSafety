@@ -35,8 +35,9 @@ public class CommonResultAsyncTask extends
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
-		mProgressDialog = new ProgressDialog(mContext);
-		if (mProgressDialog != null) {
+		
+		if (mProgressDialog != null && mMessage!=null) {
+			mProgressDialog = new ProgressDialog(mContext);
 			mProgressDialog.setTitle(AppPreferences.Others.LOADING);
 			mProgressDialog.setMessage(mMessage);
 			mProgressDialog.show();

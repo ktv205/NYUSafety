@@ -2,7 +2,6 @@ package com.example.clickforhelp.controllers.ui;
 
 import com.example.clickforhelp.R;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
-import com.example.clickforhelp.models.AppPreferences;
 import com.example.clickforhelp.models.RequestParams;
 
 import android.app.Activity;
@@ -20,6 +19,7 @@ public class FeedbackActivity extends Activity {
 	private static final int FEEDBABK_EMPTY = 2;
 	private String mFeedback;
 	private Context mContext;
+	private static final String FEEDBACK = "feedback";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +38,9 @@ public class FeedbackActivity extends Activity {
 							"feedback cannot be empty", Toast.LENGTH_SHORT)
 							.show();
 				} else {
-					String[] values = { "public", "index.php", "feedback",
+					String[] paths = { FEEDBACK,
 							CommonFunctions.getEmail(mContext), mFeedback };
-					RequestParams params = CommonFunctions.setParams(
-							AppPreferences.ServerVariables.SCHEME,
-							AppPreferences.ServerVariables.AUTHORITY, values);
+					RequestParams params = CommonFunctions.setParams(paths);
 
 				}
 			}

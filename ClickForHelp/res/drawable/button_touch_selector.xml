@@ -5,5 +5,4 @@
     <item android:state_selected="true"
         android:drawable="@color/white"></item>
     <item android:drawable="@color/white"></item>
-
 </selector>

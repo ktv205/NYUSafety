@@ -35,6 +35,7 @@ public class CommonFunctions {
 	public static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
 	private static String mRegid;
+	private static final String UPDATE_LOCATION = "updatelocation";
 
 	public static boolean isConnected(Context context) {
 		ConnectivityManager manager = (ConnectivityManager) context
@@ -71,11 +72,13 @@ public class CommonFunctions {
 		return true;
 	}
 
-	public static RequestParams setParams(String scheme, String authority,
-			String[] paths) {
+	public static RequestParams setParams(String[] paths) {
 		RequestParams params = new RequestParams();
 		Uri.Builder url = new Uri.Builder();
-		url.scheme(scheme).authority(authority).build();
+		url.scheme(AppPreferences.ServerVariables.SCHEME)
+				.authority(AppPreferences.ServerVariables.AUTHORITY).build();
+		url.appendPath(AppPreferences.ServerVariables.PUBLIC);
+		url.appendPath(AppPreferences.ServerVariables.INDEX);
 		for (String s : paths) {
 			url.appendPath(s);
 		}
@@ -135,14 +138,10 @@ public class CommonFunctions {
 		int value = userLocationUpdatePreference(context);
 		Intent sendLocationIntentService = new Intent(context,
 				LocationUpdateService.class);
-		sendLocationIntentService
-				.putExtra(
-						AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE,
-						activity);
-		boolean serviceRunning = CommonFunctions.isMyServiceRunning(
+		boolean isServiceRunning = CommonFunctions.isMyServiceRunning(
 				LocationUpdateService.class, context);
 		if (value == AppPreferences.SharedPrefLocationSettings.NEVER) {
-			if (serviceRunning) {
+			if (isServiceRunning) {
 				context.stopService(sendLocationIntentService);
 			} else {
 
@@ -150,17 +149,13 @@ public class CommonFunctions {
 
 		} else if (value == AppPreferences.SharedPrefLocationSettings.PLUGGEDIN) {
 			if (checkPluggedIn(context)) {
-				if (serviceRunning) {
-					if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
-						context.stopService(sendLocationIntentService);
-						context.startService(sendLocationIntentService);
-					} else {
+				if (isServiceRunning) {
 
-					}
+				} else {
+					context.startService(sendLocationIntentService);
 				}
 			} else {
-				if (CommonFunctions.isMyServiceRunning(
-						LocationUpdateService.class, context)) {
+				if (isServiceRunning) {
 					context.stopService(sendLocationIntentService);
 				} else {
 
@@ -169,12 +164,9 @@ public class CommonFunctions {
 			}
 
 		} else if (value == AppPreferences.SharedPrefLocationSettings.RECOMENDED) {
-			if (serviceRunning) {
+			if (isServiceRunning) {
 				if (checkChargingLevel(context)) {
-					if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
-						context.stopService(sendLocationIntentService);
-						context.startService(sendLocationIntentService);
-					}
+
 				} else {
 					context.stopService(sendLocationIntentService);
 				}
@@ -187,11 +179,8 @@ public class CommonFunctions {
 				}
 			}
 		} else {
-			if (isMyServiceRunning(LocationUpdateService.class, context)) {
-				if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
-					context.stopService(sendLocationIntentService);
-					context.startService(sendLocationIntentService);
-				}
+			if (isServiceRunning) {
+
 			} else {
 				context.startService(sendLocationIntentService);
 			}
@@ -238,43 +227,20 @@ public class CommonFunctions {
 
 	public static RequestParams buildLocationUpdateParams(String user_id,
 			double latitude, double longitude, String[] strings) {
-		String[] locationValues = { "public", "index.php", "updatelocation",
-				user_id, String.valueOf(latitude), String.valueOf(longitude),
+		String[] locationValues = { UPDATE_LOCATION, user_id,
+				String.valueOf(latitude), String.valueOf(longitude),
 				strings[0], strings[1] };
-		RequestParams locationParams = CommonFunctions.setParams(
-				AppPreferences.ServerVariables.SCHEME,
-				AppPreferences.ServerVariables.AUTHORITY, locationValues);
+		RequestParams locationParams = CommonFunctions
+				.setParams(locationValues);
 		return locationParams;
 
 	}
 
 	public static RequestParams helpParams(String path, String user_id) {
-		String[] values = { "public", "index.php", path, user_id };
-		RequestParams params = CommonFunctions.setParams(
-				AppPreferences.ServerVariables.SCHEME,
-				AppPreferences.ServerVariables.AUTHORITY, values);
+		String[] values = { path, user_id };
+		RequestParams params = CommonFunctions.setParams(values);
 		return params;
 
-	}
-
-	public static HashMap<String, String> gettingAuthValuesFromSharedPreferences(
-			Context context) {
-		HashMap<String, String> authHashMap = new HashMap<String, String>();
-		SharedPreferences authPref = getSharedPreferences(context,
-				AppPreferences.SharedPrefAuthentication.name);
-		authHashMap
-				.put(AppPreferences.SharedPrefAuthentication.user_email,
-						authPref.getString(
-								AppPreferences.SharedPrefAuthentication.user_email,
-								""));
-		authHashMap.put(AppPreferences.SharedPrefAuthentication.user_name,
-				authPref.getString(
-						AppPreferences.SharedPrefAuthentication.user_name, ""));
-		authHashMap.put(AppPreferences.SharedPrefAuthentication.password,
-				authPref.getString(
-						AppPreferences.SharedPrefAuthentication.password, ""));
-
-		return authHashMap;
 	}
 
 	public static boolean checkLoggedIn(Context context) {
@@ -297,6 +263,7 @@ public class CommonFunctions {
 	public static boolean checkIfGCMInfoIsSent(Context context) {
 		if (checkPlayServices(context)) {
 			mRegid = getRegistrationId(context);
+			Log.d(TAG, "mRegid->" + mRegid);
 			if (mRegid.isEmpty()) {
 				// registerInBackground();
 				return false;
@@ -363,9 +330,8 @@ public class CommonFunctions {
 	}
 
 	public static void saveActivityRecognitionPreference(Context context) {
-		SharedPreferences.Editor edit = CommonFunctions.getSharedPreferences(
-				context, AppPreferences.SharedPrefActivityRecognition.name)
-				.edit();
+		SharedPreferences.Editor edit = getSharedPreferences(context,
+				AppPreferences.SharedPrefActivityRecognition.name).edit();
 		edit.putBoolean(AppPreferences.SharedPrefActivityRecognition.enabled,
 				true);
 		edit.commit();

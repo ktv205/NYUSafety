@@ -18,36 +18,25 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.widget.Toast;
 
 public class LocationUpdateService extends Service implements
 		OnConnectionFailedListener, ConnectionCallbacks, LocationListener {
-	// private static final String TAG = LocationUpdateService.class
-	// .getSimpleName();
 	private GoogleApiClient mGoogleApiClient;
 	private LocationRequest mLocationRequest;
 	public static final String SEND_SERVICE = "com.example.clickforhelp.controllers.LocationUpdateService";
-	public boolean high_accuracy = false;
+	public boolean mIsHighAccuracy = false;
 	private Context mContext;
 	private static final String UPDATE = "u";
-	private String activity;
+	private String mUserEmail = "example@nyu.edu";
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		if (intent != null
-				&& intent
-						.hasExtra(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE)) {
-			activity = intent
-					.getExtras()
-					.getString(
-							AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE);
-			mContext = getApplicationContext();
-			buildGoogleApiClient();
+		mContext = getApplicationContext();
+		mUserEmail = CommonFunctions.getEmail(mContext);
+		buildGoogleApiClient();
 
-		} else {
-			stopSelf();
-		}
-
-		return START_REDELIVER_INTENT;
+		return START_STICKY;
 	}
 
 	@Override
@@ -68,7 +57,7 @@ public class LocationUpdateService extends Service implements
 		mLocationRequest = new LocationRequest();
 		mLocationRequest.setInterval(10000);
 		mLocationRequest.setFastestInterval(5000);
-		if (high_accuracy) {
+		if (mIsHighAccuracy) {
 			mLocationRequest
 					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		} else {
@@ -102,23 +91,21 @@ public class LocationUpdateService extends Service implements
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		// Log.d(TAG, "mGoogleClientDisconnected");
 		mGoogleApiClient.disconnect();
 	}
 
 	@Override
 	public void onLocationChanged(Location arg0) {
-		// Log.d(TAG, "here in onLocationChanged");
+		Toast.makeText(mContext, "changed", Toast.LENGTH_SHORT).show();
 		RequestParams locationParams = CommonFunctions
-				.buildLocationUpdateParams(CommonFunctions.getEmail(mContext),
-						arg0.getLatitude(), arg0.getLongitude(), new String[] {
-								activity, UPDATE });
-		if (CommonFunctions.isConnected(mContext)) {
-			new SendLocationsAsyncTask().execute(locationParams);
-			if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
-				stopSelf();
-			}
-		}
+				.buildLocationUpdateParams(
+						mUserEmail,
+						arg0.getLatitude(),
+						arg0.getLongitude(),
+						new String[] {
+								AppPreferences.SharedPrefActivityRecognition.WALKING,
+								UPDATE });
+		new SendLocationsAsyncTask().execute(locationParams);
 
 	}
 

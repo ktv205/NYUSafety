@@ -6,10 +6,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.example.clickforhelp.R;
+import com.example.clickforhelp.controllers.services.LocationUpdateService;
 import com.example.clickforhelp.controllers.utils.CommonFunctions;
 import com.example.clickforhelp.controllers.utils.HttpManager;
-import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask;
-import com.example.clickforhelp.controllers.utils.InternetConnectionAsyncTask.InternetConntection;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask;
 import com.example.clickforhelp.controllers.utils.SendLocationsAsyncTask.GetOtherUsersLocations;
 import com.example.clickforhelp.models.AppPreferences;
@@ -34,11 +33,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class HelperActivity extends Activity implements
-		OnConnectionFailedListener, ConnectionCallbacks,
-		GetOtherUsersLocations, InternetConntection {
+		OnConnectionFailedListener, ConnectionCallbacks, GetOtherUsersLocations {
 
 	// private static final String TAG = HelperActivity.class.getSimpleName();
 	private Context mContext;
@@ -49,9 +46,11 @@ public class HelperActivity extends Activity implements
 	private String SENDER_ID = AppPreferences.GOOGLEREGID;
 	private GoogleCloudMessaging mGcm;
 	private String mRegid;
-	private static final String UPDATE_HOME = "uh";
+	// private static final String UPDATE_HOME = "uh";
 	private static final String TAG = HelperActivity.class.getSimpleName();
 	private String userEmail;
+	private static final String UPDATE_GCM = "updategcm";
+	private static final String UPDATE = "u";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +58,27 @@ public class HelperActivity extends Activity implements
 		mContext = getApplicationContext();
 		overridePendingTransition(0, 0);
 		if (CommonFunctions.isConnected(mContext)) {
-			new InternetConnectionAsyncTask(this, true).execute();
+			setContentView(R.layout.activity_helper);
+			setActionBar();
+			mHandler = new Handler();
+			mTimer = new Timer();
+			if (CommonFunctions.checkLoggedIn(mContext)) {
+				if (CommonFunctions.isMyServiceRunning(
+						LocationUpdateService.class, mContext)) {
+					stopService(new Intent(this, LocationUpdateService.class));
+				}
+				userEmail = CommonFunctions.getEmail(mContext);
+				if (CommonFunctions.checkIfGCMInfoIsSent(mContext)) {
+					// nothing to do if already info is sent
+					startGoogleApiClient();
+				} else {
+					registerInBackground();
+					startGoogleApiClient();
+				}
+
+			} else {
+				pauseActiviy();
+			}
 		} else {
 			setNoConnectionView();
 		}
@@ -77,28 +96,36 @@ public class HelperActivity extends Activity implements
 		overridePendingTransition(0, 0);
 	}
 
+	/*
+	 * 
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks
+	 * #onConnected(android.os.Bundle)
+	 * 
+	 * GoogleApiClient.isConnect() is called it will give you three methods that
+	 * returns the success or failure or suspended
+	 */
+
 	@Override
 	public void onConnected(Bundle arg0) {
 		Location location = LocationServices.FusedLocationApi
 				.getLastLocation(mGoogleApiClient);
 		if (location != null) {
-			  RequestParams locationParams= CommonFunctions
-						.buildLocationUpdateParams(
-								userEmail,
-								location.getLatitude(),
-								location.getLongitude(),
-								new String[] {
-										AppPreferences.SharedPrefActivityRecognition.WALKING,
-										UPDATE_HOME });
+			RequestParams locationParams = CommonFunctions
+					.buildLocationUpdateParams(
+							userEmail,
+							location.getLatitude(),
+							location.getLongitude(),
+							new String[] {
+									AppPreferences.SharedPrefActivityRecognition.WALKING,
+									UPDATE });
 			if (CommonFunctions.isConnected(this)) {
 				new SendLocationsAsyncTask(HelperActivity.this)
 						.execute(locationParams);
 			}
-		} else {
-			Toast.makeText(mContext, "location is null", Toast.LENGTH_SHORT)
-					.show();
 		}
-
 	}
 
 	@Override
@@ -114,10 +141,20 @@ public class HelperActivity extends Activity implements
 
 	// user defined methods
 
+	/*
+	 * changing the title icon back to white from the launcher's purple
+	 * setActionBar()
+	 */
+
 	public void setActionBar() {
 		ActionBar bar = getActionBar();
 		bar.setIcon(R.drawable.nyu_white);
 	}
+
+	/*
+	 * The setNoConnectionView is to let the user know that there is no active
+	 * connection
+	 */
 
 	public void setNoConnectionView() {
 		setContentView(R.layout.no_connection);
@@ -130,13 +167,20 @@ public class HelperActivity extends Activity implements
 			@Override
 			public void onClick(View v) {
 				if (CommonFunctions.isConnected(mContext)) {
-					startActivity(new Intent(mContext, HelperActivity.class));
+					startActivity(new Intent(HelperActivity.this,
+							HelperActivity.class));
 					finish();
 				}
 
 			}
 		});
 	}
+
+	/*
+	 * The method goToAuthentication will send the user to sign up page if he is
+	 * not logged in pauseActivity() is to let the activity wait for a while so
+	 * that the transaction wont take place fast
+	 */
 
 	public void goToAuthenticationActivity() {
 		startActivity(new Intent(mContext, AuthenticationActivity.class));
@@ -160,6 +204,10 @@ public class HelperActivity extends Activity implements
 
 	}
 
+	/*
+	 * this method is to create a GoogleApiClient and call connect on it
+	 */
+
 	public void startGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addApi(LocationServices.API).addConnectionCallbacks(this)
@@ -167,18 +215,14 @@ public class HelperActivity extends Activity implements
 		mGoogleApiClient.connect();
 	}
 
+	/*
+	 * just sending the user to mainactivity after grabbing his initial location
+	 * 
+	 */
+
 	@Override
 	public void getData(ArrayList<LocationDetailsModel> locations) {
-		Toast.makeText(mContext,
-				"here you are supposed to get users locations",
-				Toast.LENGTH_SHORT).show();
-		for(LocationDetailsModel location:locations){
-			Log.d(TAG,location.getUser_email());
-		}
-
 		Intent intent = new Intent(mContext, MainActivity.class);
-		intent.putExtra(AppPreferences.IntentExtras.INITIAL_LOCATIONS,
-				locations);
 		startActivity(intent);
 		finish();
 
@@ -197,6 +241,7 @@ public class HelperActivity extends Activity implements
 					}
 					mRegid = mGcm.register(SENDER_ID);
 					msg = "Device registered, registration ID=" + mRegid;
+					Log.d(TAG,msg);
 					sendRegistrationIdToBackend(mRegid);
 					CommonFunctions.storeRegistrationId(mContext, mRegid);
 				} catch (IOException ex) {
@@ -208,53 +253,13 @@ public class HelperActivity extends Activity implements
 		}.execute();
 	}
 
+	/*
+	 * This the method where we create the params that are required to build the
+	 * url to be called to send the regid to the server
+	 */
 	private void sendRegistrationIdToBackend(String regid) {
-		String[] values = { "public", "index.php", "updategcm", userEmail,
-				regid };
-		RequestParams params = CommonFunctions.setParams(
-				AppPreferences.ServerVariables.SCHEME,
-				AppPreferences.ServerVariables.AUTHORITY, values);
-		new SendGCMInfoAsyncTask().execute(params);
+		String[] paths = { UPDATE_GCM, userEmail, regid };
+		RequestParams params = CommonFunctions.setParams(paths);
+		HttpManager.sendUserData(params);
 	}
-
-	public class SendGCMInfoAsyncTask extends
-			AsyncTask<RequestParams, Void, String> {
-		@Override
-		protected String doInBackground(RequestParams... params) {
-			return HttpManager.sendUserData(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-		}
-
-	}
-
-	@Override
-	public void isConnected(boolean connected) {
-		if (connected == true) {
-			setContentView(R.layout.activity_helper);
-			setActionBar();
-			mHandler = new Handler();
-			mTimer = new Timer();
-			if (CommonFunctions.checkLoggedIn(mContext)) {
-				userEmail = CommonFunctions.getEmail(mContext);
-				if (CommonFunctions.checkIfGCMInfoIsSent(mContext)) {
-					// nothing to do if already info is sent
-				} else {
-					registerInBackground();
-
-				}
-				startGoogleApiClient();
-
-			} else {
-				pauseActiviy();
-			}
-
-		} else {
-			setNoConnectionView();
-		}
-	}
-
 }

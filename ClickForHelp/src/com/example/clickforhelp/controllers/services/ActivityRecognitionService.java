@@ -5,24 +5,22 @@ import com.example.clickforhelp.models.AppPreferences;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
-import android.app.IntentService;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
+import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
+import android.test.ActivityTestCase;
+import android.util.Log;
 
-public class ActivityRecognitionService extends IntentService {
+public class ActivityRecognitionService extends Service {
 	private Context mContext;
-
-	public ActivityRecognitionService() {
-		super(ActivityRecognitionService.class.getSimpleName());
-		// TODO Auto-generated constructor stub
-	}
+	private final static String TAG = ActivityRecognitionService.class
+			.getSimpleName();
 
 	@Override
-	protected void onHandleIntent(Intent intent) {
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(TAG, "onStartCommand");
 		if (mContext == null) {
 			mContext = getApplicationContext();
 		}
@@ -56,43 +54,29 @@ public class ActivityRecognitionService extends IntentService {
 						.isActivityRunning(mContext);
 				if (serviceRunning && !activityRunning) {
 					if (activity != null) {
-						if (activity == AppPreferences.SharedPrefActivityRecognition.STILL) {
+						if (activity
+								.equals(AppPreferences.SharedPrefActivityRecognition.STILL)) {
 							CommonFunctions
 									.settingUserPreferenceLocationUpdates(
 											mContext, activity);
 						}
 					}
 				} else if (!serviceRunning && activityRunning) {
-
-					if (intent
-							.hasExtra(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE)) {
-						if (CommonFunctions
-								.isActivityRunning(getApplicationContext())) {
-							Messenger message = (Messenger) intent
-									.getExtras()
-									.get(AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE);
-							try {
-								Message msg = Message.obtain();
-								if (activity != null) {
-									Bundle bundle = new Bundle();
-									bundle.putString(
-											AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE,
-											activity);
-									msg.setData(bundle);
-									message.send(msg);
-								}
-
-							} catch (RemoteException e) {
-								e.printStackTrace();
-							}
-						}
-
-					}
+					Intent sendIntent = new Intent();
+					sendIntent
+							.setAction("com.example.clickforhelp.controllers.ui.action_send");
+					sendIntent
+							.putExtra(
+									AppPreferences.IntentExtras.ActivityRecognitionService_EXTRA_MESSAGE,
+									activity);
+					sendBroadcast(sendIntent);
 
 				} else if (!serviceRunning && !activityRunning) {
 					if (activity != null) {
-						if (activity == AppPreferences.SharedPrefActivityRecognition.WALKING
-								|| activity == AppPreferences.SharedPrefActivityRecognition.VEHICLE) {
+						if (activity
+								.equals(AppPreferences.SharedPrefActivityRecognition.WALKING)
+								|| activity
+										.equals(AppPreferences.SharedPrefActivityRecognition.VEHICLE)) {
 							CommonFunctions
 									.settingUserPreferenceLocationUpdates(
 											mContext, activity);
@@ -103,5 +87,13 @@ public class ActivityRecognitionService extends IntentService {
 			}
 
 		}
+
+		return START_NOT_STICKY;
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

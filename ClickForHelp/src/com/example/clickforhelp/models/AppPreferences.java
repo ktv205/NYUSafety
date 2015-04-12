@@ -1,9 +1,9 @@
-
 package com.example.clickforhelp.models;
 
 public class AppPreferences {
 	public static final String GOOGLEREGID = "947264921784";
-    public static int tryConnectionCounter=0;
+	public static int tryConnectionCounter = 0;
+
 	public static abstract class Flags {
 		public final static int SIGNUP_FLAG = 1991;
 		public final static int LOGIN_FLAG = 1992;
@@ -12,6 +12,9 @@ public class AppPreferences {
 		public final static int BACK_FLAG = 1995;
 		public final static int LOGIN_BACK = 1996;
 		public final static int SIGNUP_SUCCESS = 1998;
+		public final static int HELPER_COLOR_FLAG = 1999;
+		public final static int VICTIM_COLOR_FLAG = 2000;
+		public final static int USER_COLOR_FLAG = 2001;
 
 	}
 
@@ -27,9 +30,9 @@ public class AppPreferences {
 		public final static String HIGH_ACCURACY = "high_accuracy";
 		public final static String BALANCED_POWER = "balanced_power";
 		public final static String NEW_PASSWORD = "new password";
-		public final static String INITIAL_LOCATIONS="initial_locations";
-		public final static String ActivityRecognitionService_EXTRA_MESSAGE="ActivityRecognitionService.EXTRA_MESSAGE";
-		public final static String ReceiveLocationService_EXTRA_MESSAGE="ReceiveLocationService_EXTRA_MESSAGE";
+		public final static String INITIAL_LOCATIONS = "initial_locations";
+		public final static String ActivityRecognitionService_EXTRA_MESSAGE = "ActivityRecognitionService.EXTRA_MESSAGE";
+		public final static String ReceiveLocationService_EXTRA_MESSAGE = "ReceiveLocationService_EXTRA_MESSAGE";
 	}
 
 	public static abstract class SharedPrefAuthentication {
@@ -60,13 +63,15 @@ public class AppPreferences {
 		public final static String WALKING = "walking";
 		public final static String STILL = "still";
 		public final static String VEHICLE = "onvehicle";
-		public final static String activityType= "activityType";
+		public final static String activityType = "activityType";
 		public final static String type = "type";
 	}
 
 	public static abstract class ServerVariables {
 		public final static String SCHEME = "http";
 		public final static String AUTHORITY = "hacksafety.elasticbeanstalk.com";
+		public static final String PUBLIC = "public";
+		public  static final String INDEX = "index.php";
 	}
 
 	public static abstract class Others {

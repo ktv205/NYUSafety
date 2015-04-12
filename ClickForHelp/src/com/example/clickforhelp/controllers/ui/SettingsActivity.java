@@ -137,7 +137,8 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 				AppPreferences.SharedPrefAuthentication.name);
 		SharedPreferences.Editor edit = pref.edit();
 		edit.putString(AppPreferences.SharedPrefAuthentication.name, "");
-		edit.putString(AppPreferences.SharedPrefAuthentication.user_email, "");
+		edit.putString(AppPreferences.SharedPrefAuthentication.user_email,
+				"example@nyu.edu");
 		edit.putString(AppPreferences.SharedPrefAuthentication.flag, "");
 		edit.putString(AppPreferences.SharedPrefAuthentication.password, "");
 		edit.commit();
@@ -158,7 +159,6 @@ public class SettingsActivity extends Activity implements SummaryInterface {
 
 	@Override
 	public Intent getParentActivityIntent() {
-		// TODO Auto-generated method stub
 		return super.getParentActivityIntent().addFlags(
 				Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	}
